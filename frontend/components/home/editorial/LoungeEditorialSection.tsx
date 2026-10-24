@@ -32,27 +32,27 @@ export const LoungeEditorialSection: React.FC = () => {
         </div>
 
         {/* 2-Column Sculptural Composition */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 items-stretch">
           
           {/* Main Focus: Spruce Bent Plywood Lounge & Ottoman (7 Cols) */}
-          <div className="lg:col-span-7 bg-white rounded-3xl border border-[#E4DFD3] p-6 sm:p-10 shadow-xs flex flex-col justify-between group">
+          <div className="lg:col-span-7 bg-white rounded-2xl sm:rounded-3xl border border-[#E4DFD3] p-5 sm:p-10 shadow-xs flex flex-col justify-between group">
             <div>
-              <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
-                <span className="text-[10px] font-mono font-bold uppercase tracking-wider bg-[#F2EFE8] text-[#556149] px-3 py-1 rounded-full border border-[#758169]/20">
+              <div className="flex flex-wrap items-center justify-between gap-3 sm:gap-4 mb-3 sm:mb-4">
+                <span className="text-[9px] sm:text-[10px] font-mono font-bold uppercase tracking-wider bg-[#F2EFE8] text-[#556149] px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-full border border-[#758169]/20">
                   {spruce.badge}
                 </span>
-                <span className="text-xs font-mono text-[#898E82]">Lounge Cat. • Pg. 02</span>
+                <span className="text-[10px] sm:text-xs font-mono text-[#898E82]">Lounge Cat. • Pg. 02</span>
               </div>
 
-              <h3 className="font-serif text-2xl sm:text-3xl font-normal text-[#1E241E]">
+              <h3 className="font-serif text-xl sm:text-3xl font-normal text-[#1E241E]">
                 {spruce.name}
               </h3>
-              <p className="text-sm text-[#666B60] font-light mt-2 max-w-xl leading-relaxed">
+              <p className="text-xs sm:text-sm text-[#666B60] font-light mt-1.5 sm:mt-2 max-w-xl leading-relaxed">
                 {spruce.description}
               </p>
 
               {/* Genuine Cutout of Chair with Ottoman */}
-              <div className="relative my-6 sm:my-8 h-[280px] sm:h-[360px] w-full flex items-center justify-center">
+              <div className="relative my-4 sm:my-8 h-[220px] xs:h-[260px] sm:h-[360px] w-full flex items-center justify-center">
                 <div className="absolute inset-0 bg-radial from-[#758169]/10 via-transparent to-transparent rounded-full blur-xl pointer-events-none" />
                 <Image
                   src={spruce.image}
@@ -65,9 +65,9 @@ export const LoungeEditorialSection: React.FC = () => {
             </div>
 
             {/* Specs & Link */}
-            <div className="pt-6 border-t border-[#EDE8DE] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-              <div className="space-y-1">
-                <span className="text-[11px] font-mono uppercase tracking-wider text-[#898E82] block">
+            <div className="pt-4 sm:pt-6 border-t border-[#EDE8DE] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
+              <div className="space-y-0.5 sm:space-y-1">
+                <span className="text-[10px] sm:text-[11px] font-mono uppercase tracking-wider text-[#898E82] block">
                   CRAFT SPECIFICATION
                 </span>
                 <span className="text-xs font-medium text-[#1E241E] block">
@@ -77,7 +77,7 @@ export const LoungeEditorialSection: React.FC = () => {
 
               <Link
                 href={spruce.href}
-                className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-[#1C231F] hover:bg-[#323D37] text-white text-xs sm:text-sm font-semibold tracking-wider uppercase transition shadow-md shrink-0 group"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 sm:px-6 py-3 rounded-xl bg-[#1C231F] hover:bg-[#323D37] text-white text-xs sm:text-sm font-semibold tracking-wider uppercase transition shadow-md shrink-0 group text-center"
               >
                 <span>Explore Lounge Seating</span>
                 <ArrowRight size={15} className="group-hover:translate-x-1 transition-transform" />

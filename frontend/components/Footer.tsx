@@ -13,37 +13,37 @@ export const Footer: React.FC = () => {
   return (
     <footer className="bg-[#13231D] text-[#F7F5F0] pt-16 pb-12 border-t border-white/10">
       {/* Brand Value Ribbon */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12 border-b border-white/10">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-          <div className="flex items-start gap-4">
-            <div className="w-10 h-10 rounded-full bg-white/5 border border-white/10 text-[#78836A] flex items-center justify-center shrink-0"><span aria-hidden="true">01</span></div>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-10 sm:pb-12 border-b border-white/10">
+        <div className="grid grid-cols-1 xs:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
+          <div className="flex items-start gap-3 sm:gap-4">
+            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white/5 border border-white/10 text-[#78836A] flex items-center justify-center shrink-0 text-xs sm:text-sm font-semibold"><span aria-hidden="true">01</span></div>
             <div>
-              <h4 className="text-sm font-semibold text-white">Browse the catalogue</h4>
-              <p className="text-xs text-white/65 mt-1 leading-relaxed">Review product descriptions, images, and current prices.</p>
+              <h4 className="text-xs sm:text-sm font-semibold text-white">Browse catalogue</h4>
+              <p className="text-[11px] sm:text-xs text-white/65 mt-1 leading-relaxed">Descriptions, genuine photographs & transparent pricing.</p>
             </div>
           </div>
 
-          <div className="flex items-start gap-4">
-            <div className="w-10 h-10 rounded-full bg-white/5 border border-white/10 text-[#78836A] flex items-center justify-center shrink-0"><span aria-hidden="true">02</span></div>
+          <div className="flex items-start gap-3 sm:gap-4">
+            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white/5 border border-white/10 text-[#78836A] flex items-center justify-center shrink-0 text-xs sm:text-sm font-semibold"><span aria-hidden="true">02</span></div>
             <div>
-              <h4 className="text-sm font-semibold text-white">Checkout securely</h4>
-              <p className="text-xs text-white/65 mt-1 leading-relaxed">Available payment options and the order total appear at checkout.</p>
+              <h4 className="text-xs sm:text-sm font-semibold text-white">Checkout securely</h4>
+              <p className="text-[11px] sm:text-xs text-white/65 mt-1 leading-relaxed">Razorpay encryption with UPI, NetBanking & No Cost EMI.</p>
             </div>
           </div>
 
-          <div className="flex items-start gap-4">
-            <div className="w-10 h-10 rounded-full bg-white/5 border border-white/10 text-[#78836A] flex items-center justify-center shrink-0"><span aria-hidden="true">03</span></div>
+          <div className="flex items-start gap-3 sm:gap-4">
+            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white/5 border border-white/10 text-[#78836A] flex items-center justify-center shrink-0 text-xs sm:text-sm font-semibold"><span aria-hidden="true">03</span></div>
             <div>
-              <h4 className="text-sm font-semibold text-white">Follow your order</h4>
-              <p className="text-xs text-white/65 mt-1 leading-relaxed">Order status and any available tracking details are in your account.</p>
+              <h4 className="text-xs sm:text-sm font-semibold text-white">Follow your order</h4>
+              <p className="text-[11px] sm:text-xs text-white/65 mt-1 leading-relaxed">Live status and dispatch tracking directly in your account.</p>
             </div>
           </div>
 
-          <div className="flex items-start gap-4">
-            <div className="w-10 h-10 rounded-full bg-white/5 border border-white/10 text-[#78836A] flex items-center justify-center shrink-0"><span aria-hidden="true">04</span></div>
+          <div className="flex items-start gap-3 sm:gap-4">
+            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white/5 border border-white/10 text-[#78836A] flex items-center justify-center shrink-0 text-xs sm:text-sm font-semibold"><span aria-hidden="true">04</span></div>
             <div>
-              <h4 className="text-sm font-semibold text-white">Need help?</h4>
-              <p className="text-xs text-white/65 mt-1 leading-relaxed">Contact customer support with product or order questions.</p>
+              <h4 className="text-xs sm:text-sm font-semibold text-white">Need help?</h4>
+              <p className="text-[11px] sm:text-xs text-white/65 mt-1 leading-relaxed">Direct WhatsApp factory support for products & projects.</p>
             </div>
           </div>
         </div>

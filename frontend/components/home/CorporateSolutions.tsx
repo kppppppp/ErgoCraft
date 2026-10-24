@@ -8,57 +8,57 @@ export const CorporateSolutions: React.FC = () => {
   const [modalOpen, setModalOpen] = useState(false);
 
   return (
-    <section id="corporate-solutions" className="py-16 sm:py-24 bg-white border-b border-[#E8E5DE]">
+    <section id="corporate-solutions" className="py-14 sm:py-24 bg-white border-b border-[#E8E5DE]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="bg-[#F7F5F0] rounded-3xl border border-[#E8E5DE] p-8 sm:p-12 lg:p-16 overflow-hidden relative">
+        <div className="bg-[#F7F5F0] rounded-2xl sm:rounded-3xl border border-[#E8E5DE] p-5 sm:p-12 lg:p-16 overflow-hidden relative">
           {/* Subtle accent glow */}
           <div className="absolute top-0 right-0 w-96 h-96 bg-[#78836A]/5 rounded-full blur-3xl pointer-events-none" />
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center relative z-10">
             {/* Left Column: B2B Information */}
-            <div className="lg:col-span-7 space-y-6">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#13231D]/5 border border-[#13231D]/10 text-[10px] sm:text-[11px] font-mono font-bold uppercase tracking-[0.22em] text-[#78836A]">
-                <Building2 size={13} />
-                <span>ENTERPRISE & INSTITUTIONAL SEATING</span>
+            <div className="lg:col-span-7 space-y-4 sm:space-y-6">
+              <div className="inline-flex items-center gap-2 px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-full bg-[#13231D]/5 border border-[#13231D]/10 text-[9px] sm:text-[11px] font-mono font-bold uppercase tracking-[0.20em] sm:tracking-[0.22em] text-[#78836A]">
+                <Building2 size={12} className="shrink-0" />
+                <span className="truncate">ENTERPRISE & INSTITUTIONAL SEATING</span>
               </div>
 
-              <h2 className="font-serif-luxury text-3xl sm:text-4xl lg:text-[42px] font-normal tracking-tight text-[#13231D] leading-[1.08]">
+              <h2 className="font-serif-luxury text-2xl xs:text-3xl sm:text-4xl lg:text-[42px] font-normal tracking-tight text-[#13231D] leading-[1.08]">
                 <span>Furnish Your Workplace</span>{' '}
                 <span className="italic font-serif text-[#78836A] font-light">with Tailored Bulk Solutions.</span>
               </h2>
 
-              <p className="text-sm text-[#73756F] leading-relaxed max-w-xl">
+              <p className="text-xs sm:text-sm text-[#73756F] leading-relaxed max-w-xl">
                 From startup office expansions to Fortune 500 headquarters, ErgoCraft partners with architects,
                 interior designers, and procurement managers across India. Benefit from factory-direct tiered
                 pricing, bespoke upholstery palettes, CAD space planning, and turnkey on-site assembly.
               </p>
 
               {/* B2B Value Checklist */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 pt-2">
-                <div className="flex items-center gap-2.5 text-xs font-semibold text-[#242620]">
-                  <CheckCircle2 size={16} className="text-[#78836A] shrink-0" />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3.5 pt-1 sm:pt-2">
+                <div className="flex items-center gap-2 text-xs font-semibold text-[#242620]">
+                  <CheckCircle2 size={15} className="text-[#78836A] shrink-0" />
                   <span>Corporate orders welcome</span>
                 </div>
-                <div className="flex items-center gap-2.5 text-xs font-semibold text-[#242620]">
-                  <CheckCircle2 size={16} className="text-[#78836A] shrink-0" />
+                <div className="flex items-center gap-2 text-xs font-semibold text-[#242620]">
+                  <CheckCircle2 size={15} className="text-[#78836A] shrink-0" />
                   <span>Request a tailored quote</span>
                 </div>
-                <div className="flex items-center gap-2.5 text-xs font-semibold text-[#242620]">
-                  <CheckCircle2 size={16} className="text-[#78836A] shrink-0" />
+                <div className="flex items-center gap-2 text-xs font-semibold text-[#242620]">
+                  <CheckCircle2 size={15} className="text-[#78836A] shrink-0" />
                   <span>Discuss product options with our team</span>
                 </div>
-                <div className="flex items-center gap-2.5 text-xs font-semibold text-[#242620]">
-                  <CheckCircle2 size={16} className="text-[#78836A] shrink-0" />
+                <div className="flex items-center gap-2 text-xs font-semibold text-[#242620]">
+                  <CheckCircle2 size={15} className="text-[#78836A] shrink-0" />
                   <span>Confirm product terms before ordering</span>
                 </div>
               </div>
 
               {/* CTAs */}
-              <div className="pt-4 flex flex-wrap items-center gap-4">
+              <div className="pt-2 sm:pt-4 flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4">
                 <button
                   type="button"
                   onClick={() => setModalOpen(true)}
-                  className="px-7 py-3.5 rounded-xl bg-[#13231D] text-white text-xs sm:text-sm font-semibold tracking-wider uppercase hover:bg-[#78836A] transition shadow-xs flex items-center gap-2 cursor-pointer"
+                  className="w-full sm:w-auto px-6 py-3 sm:px-7 sm:py-3.5 rounded-xl bg-[#13231D] text-white text-xs sm:text-sm font-semibold tracking-wider uppercase hover:bg-[#78836A] transition shadow-xs flex items-center justify-center gap-2 cursor-pointer text-center"
                 >
                   <span>Request Corporate Quote</span>
                   <ArrowRight size={15} />
@@ -66,10 +66,10 @@ export const CorporateSolutions: React.FC = () => {
 
                 <a
                   href="tel:+919768001999"
-                  className="px-6 py-3.5 rounded-xl bg-white border border-[#E8E5DE] text-[#242620] text-xs sm:text-sm font-semibold tracking-wider uppercase hover:border-[#78836A] hover:text-[#78836A] transition shadow-2xs flex items-center gap-2 cursor-pointer"
+                  className="w-full sm:w-auto px-5 py-3 sm:px-6 sm:py-3.5 rounded-xl bg-white border border-[#E8E5DE] text-[#242620] text-xs sm:text-sm font-semibold tracking-wider uppercase hover:border-[#78836A] hover:text-[#78836A] transition shadow-2xs flex items-center justify-center gap-2 cursor-pointer text-center"
                 >
-                  <Phone size={14} className="text-[#78836A]" />
-                  <span>Call B2B Desk (+91 97680 01999)</span>
+                  <Phone size={14} className="text-[#78836A] shrink-0" />
+                  <span>Call B2B (+91 97680 01999)</span>
                 </a>
               </div>
             </div>

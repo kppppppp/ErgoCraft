@@ -19,27 +19,27 @@ export const MeshEditorialSection: React.FC = () => {
       <div className="w-full max-w-[1720px] mx-auto px-4 sm:px-6 lg:px-10 relative z-10">
         
         {/* Section Header */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12 sm:mb-16">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 sm:gap-6 mb-10 sm:mb-16">
           <div className="max-w-3xl">
-            <div className="inline-flex items-center gap-2 mb-3">
+            <div className="inline-flex items-center gap-2 mb-2 sm:mb-3">
               <span className="w-2 h-2 rounded-full bg-[#C5A880]" />
-              <p className="text-[11px] font-mono font-bold uppercase tracking-[0.25em] text-[#C5A880]">
+              <p className="text-[10px] sm:text-[11px] font-mono font-bold uppercase tracking-[0.25em] text-[#C5A880]">
                 EDITION 02 • ACTIVE WORKSPACE ERGONOMICS
               </p>
             </div>
-            <h2 className="font-serif-luxury text-4xl sm:text-5xl lg:text-[56px] font-normal tracking-tight text-white leading-[1.06]">
+            <h2 className="font-serif-luxury text-3xl sm:text-5xl lg:text-[56px] font-normal tracking-tight text-white leading-[1.06]">
               <span>Made for</span>{' '}
               <span className="italic font-serif text-[#C5A880] font-light">the Long Game.</span>
             </h2>
-            <p className="text-base sm:text-lg text-white/70 font-light mt-4 leading-relaxed max-w-2xl">
+            <p className="text-sm sm:text-lg text-white/70 font-light mt-2 sm:mt-4 leading-relaxed max-w-2xl">
               For long workdays and focused sessions, explore mesh seating designed to bring thoughtful support to your workspace.
             </p>
           </div>
 
-          <div className="shrink-0">
+          <div className="shrink-0 w-full sm:w-auto">
             <Link
               href={ergoluxe.href}
-              className="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl bg-[#78836A] hover:bg-[#5E6852] text-white text-xs sm:text-sm font-semibold tracking-wider uppercase transition shadow-lg group"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 sm:px-6 py-3 sm:py-3.5 rounded-xl bg-[#78836A] hover:bg-[#5E6852] text-white text-xs sm:text-sm font-semibold tracking-wider uppercase transition shadow-lg group text-center"
             >
               <span>Discover Mesh Chairs</span>
               <ArrowRight size={15} className="group-hover:translate-x-1 transition-transform" />
@@ -48,28 +48,28 @@ export const MeshEditorialSection: React.FC = () => {
         </div>
 
         {/* 2-Column Mesh Architecture Showcase */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 items-stretch">
           
           {/* Main Focus: Ergoluxe High Back (7 Cols) */}
-          <div className="lg:col-span-7 bg-white/5 border border-white/10 rounded-3xl p-6 sm:p-10 flex flex-col justify-between backdrop-blur-sm group hover:border-[#C5A880]/30 transition-colors">
+          <div className="lg:col-span-7 bg-white/5 border border-white/10 rounded-2xl sm:rounded-3xl p-5 sm:p-10 flex flex-col justify-between backdrop-blur-sm group hover:border-[#C5A880]/30 transition-colors">
             <div>
-              <div className="flex items-center justify-between mb-4">
-                <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#C5A880] bg-[#C5A880]/10 px-3 py-1 rounded-full border border-[#C5A880]/20">
+              <div className="flex items-center justify-between mb-3 sm:mb-4">
+                <span className="text-[9px] sm:text-[10px] font-mono font-bold uppercase tracking-widest text-[#C5A880] bg-[#C5A880]/10 px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-full border border-[#C5A880]/20">
                   {ergoluxe.badge}
                 </span>
-                <span className="text-xs font-mono text-white/50">Mesh Catalogue • Pg. 06</span>
+                <span className="text-[10px] sm:text-xs font-mono text-white/50">Mesh Catalogue • Pg. 06</span>
               </div>
 
-              <h3 className="font-serif text-2xl sm:text-3xl text-white font-normal">
+              <h3 className="font-serif text-xl sm:text-3xl text-white font-normal">
                 {ergoluxe.name}
               </h3>
-              <p className="text-sm text-white/70 font-light mt-2 max-w-xl leading-relaxed">
+              <p className="text-xs sm:text-sm text-white/70 font-light mt-1.5 sm:mt-2 max-w-xl leading-relaxed">
                 {ergoluxe.description}
               </p>
             </div>
 
             {/* Genuine High-Res Chair Silhouette */}
-            <div className="relative my-8 h-[340px] sm:h-[420px] w-full flex items-center justify-center">
+            <div className="relative my-4 sm:my-8 h-[240px] xs:h-[280px] sm:h-[420px] w-full flex items-center justify-center">
               <Image
                 src={ergoluxe.image}
                 alt={ergoluxe.name}
@@ -80,13 +80,13 @@ export const MeshEditorialSection: React.FC = () => {
             </div>
 
             {/* Verified Specifications Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-4 border-t border-white/10">
+            <div className="grid grid-cols-2 gap-2.5 sm:gap-3 pt-4 border-t border-white/10">
               {ergoluxe.specs.map((spec) => (
-                <div key={spec.label} className="bg-white/5 p-3 rounded-xl border border-white/5">
-                  <span className="text-[10px] font-mono uppercase tracking-wider text-[#C5A880] block">
+                <div key={spec.label} className="bg-white/5 p-2.5 sm:p-3 rounded-xl border border-white/5">
+                  <span className="text-[9px] sm:text-[10px] font-mono uppercase tracking-wider text-[#C5A880] block truncate">
                     {spec.label}
                   </span>
-                  <span className="text-xs text-white/85 mt-0.5 block font-medium">
+                  <span className="text-[11px] sm:text-xs text-white/85 mt-0.5 block font-medium truncate">
                     {spec.value}
                   </span>
                 </div>

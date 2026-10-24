@@ -88,12 +88,12 @@ export const BestsellerSection: React.FC = () => {
           </div>
 
           {/* Interactive Category Filter Tabs */}
-          <div className="flex flex-wrap items-center gap-2 bg-[#F7F5F0] p-1.5 rounded-xl border border-[#E8E5DE] self-start md:self-auto">
+          <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 bg-[#F7F5F0] p-1 sm:p-1.5 rounded-xl border border-[#E8E5DE] self-start md:self-auto w-full sm:w-auto">
             {TABS.map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`px-4 py-2 rounded-lg text-xs font-semibold tracking-wider transition cursor-pointer ${
+                className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-[11px] sm:text-xs font-semibold tracking-wider transition cursor-pointer flex-1 sm:flex-initial text-center ${
                   activeTab === tab.id
                     ? 'bg-[#13231D] text-white shadow-xs'
                     : 'text-[#73756F] hover:text-[#242620]'
@@ -107,9 +107,9 @@ export const BestsellerSection: React.FC = () => {
 
         {/* Loading Skeletons */}
         {loading && (
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6 animate-pulse">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-6 animate-pulse">
             {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="bg-white rounded-2xl border border-[#E8E5DE] p-4 space-y-4">
+              <div key={i} className="bg-white rounded-2xl border border-[#E8E5DE] p-3 sm:p-4 space-y-3 sm:space-y-4">
                 <div className="aspect-square bg-gray-200 rounded-xl" />
                 <div className="h-4 bg-gray-200 rounded w-2/3" />
                 <div className="h-4 bg-gray-200 rounded w-1/3" />
@@ -120,7 +120,7 @@ export const BestsellerSection: React.FC = () => {
 
         {/* Product Grid: 4 columns desktop, 3 tablet, 2 mobile */}
         {!loading && filteredProducts.length > 0 && (
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-6">
             {filteredProducts.slice(0, 8).map((product) => (
               <ProductCard key={product._id} product={product} />
             ))}

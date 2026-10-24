@@ -32,27 +32,27 @@ export const SofaEditorialSection: React.FC = () => {
         </div>
 
         {/* 2-Card Sofa & Recliner Architecture */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 items-stretch">
           
           {/* Main Hero Card: Bonjour 3-Seater Sofa (8 Cols) */}
-          <div className="lg:col-span-8 bg-white rounded-3xl border border-[#E3DDCF] p-6 sm:p-10 shadow-xs flex flex-col justify-between group">
+          <div className="lg:col-span-8 bg-white rounded-2xl sm:rounded-3xl border border-[#E3DDCF] p-5 sm:p-10 shadow-xs flex flex-col justify-between group">
             <div>
-              <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
-                <span className="text-[10px] font-mono font-bold uppercase tracking-wider bg-[#F4EFE6] text-[#826644] px-3 py-1 rounded-full border border-[#826644]/20">
+              <div className="flex flex-wrap items-center justify-between gap-3 sm:gap-4 mb-3 sm:mb-4">
+                <span className="text-[9px] sm:text-[10px] font-mono font-bold uppercase tracking-wider bg-[#F4EFE6] text-[#826644] px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-full border border-[#826644]/20">
                   {bonjour.badge}
                 </span>
-                <span className="text-xs font-mono text-[#8C9086]">Sofa Catalogue • Pg. 19</span>
+                <span className="text-[10px] sm:text-xs font-mono text-[#8C9086]">Sofa Catalogue • Pg. 19</span>
               </div>
 
-              <h3 className="font-serif text-2xl sm:text-3xl font-normal text-[#212620]">
+              <h3 className="font-serif text-xl sm:text-3xl font-normal text-[#212620]">
                 {bonjour.name}
               </h3>
-              <p className="text-sm text-[#6C7164] font-light mt-2 max-w-2xl leading-relaxed">
+              <p className="text-xs sm:text-sm text-[#6C7164] font-light mt-1.5 sm:mt-2 max-w-2xl leading-relaxed">
                 {bonjour.description}
               </p>
 
               {/* Large Genuine Sofa Photography */}
-              <div className="relative my-6 sm:my-8 h-[280px] sm:h-[400px] w-full rounded-2xl overflow-hidden bg-[#FAF8F5]">
+              <div className="relative my-4 sm:my-8 h-[200px] xs:h-[240px] sm:h-[400px] w-full rounded-2xl overflow-hidden bg-[#FAF8F5]">
                 <Image
                   src={bonjour.image}
                   alt={bonjour.name}
@@ -64,27 +64,27 @@ export const SofaEditorialSection: React.FC = () => {
             </div>
 
             {/* Verified Specifications Grid & CTA */}
-            <div className="pt-6 border-t border-[#F0EBE0]">
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+            <div className="pt-4 sm:pt-6 border-t border-[#F0EBE0]">
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3 mb-5 sm:mb-6">
                 {bonjour.specs.map((spec) => (
-                  <div key={spec.label} className="bg-[#FAF8F5] p-3 rounded-xl border border-[#EFEBE3]">
-                    <span className="text-[10px] font-mono uppercase tracking-wider text-[#8C9086] block">
+                  <div key={spec.label} className="bg-[#FAF8F5] p-2.5 sm:p-3 rounded-xl border border-[#EFEBE3]">
+                    <span className="text-[9px] sm:text-[10px] font-mono uppercase tracking-wider text-[#8C9086] block truncate">
                       {spec.label}
                     </span>
-                    <span className="text-xs font-medium text-[#212620] mt-0.5 block">
+                    <span className="text-[11px] sm:text-xs font-medium text-[#212620] mt-0.5 block truncate">
                       {spec.value}
                     </span>
                   </div>
                 ))}
               </div>
 
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <span className="text-xs text-[#717669]">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
+                <span className="text-[11px] sm:text-xs text-[#717669]">
                   Available in bespoke 1-Seater, 2-Seater, and 3-Seater room configurations.
                 </span>
                 <Link
                   href={bonjour.href}
-                  className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-[#202722] hover:bg-[#343F37] text-white text-xs sm:text-sm font-semibold tracking-wider uppercase transition shadow-md shrink-0 group"
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 sm:px-6 py-3 rounded-xl bg-[#202722] hover:bg-[#343F37] text-white text-xs sm:text-sm font-semibold tracking-wider uppercase transition shadow-md shrink-0 group text-center"
                 >
                   <span>Explore Sofas & Recliners</span>
                   <ArrowRight size={15} className="group-hover:translate-x-1 transition-transform" />

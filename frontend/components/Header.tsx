@@ -326,6 +326,17 @@ export const Header: React.FC = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  // Lock body scroll when mobile menu drawer is open
+  useEffect(() => {
+    if (mobileMenuOpen) {
+      const originalOverflow = document.body.style.overflow;
+      document.body.style.overflow = 'hidden';
+      return () => {
+        document.body.style.overflow = originalOverflow;
+      };
+    }
+  }, [mobileMenuOpen]);
+
   // Suggested quick search terms
   const suggestedSearches = [
     { label: 'Oscar High Back Mesh', query: 'oscar' },
@@ -404,33 +415,33 @@ export const Header: React.FC = () => {
   return (
     <>
       {/* 1. Slim Announcement Bar */}
-      <div className="bg-[#0B1512]/95 text-[#F7F5F0] text-[11px] py-1.5 px-4 border-b border-white/8 select-none transition-colors">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-2">
+      <div className="bg-[#0B1512]/95 text-[#F7F5F0] text-[10px] sm:text-[11px] py-1.5 px-3 sm:px-4 border-b border-white/8 select-none transition-colors">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-1 sm:gap-2">
           {/* Left Trust Indicators */}
-          <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 sm:gap-6 text-[#F7F5F0]/85">
+          <div className="flex flex-wrap items-center justify-center md:justify-start gap-2.5 sm:gap-6 text-[#F7F5F0]/85">
             <span className="flex items-center gap-1.5 font-medium">
-              <ShieldCheck size={13} className="text-[#C5A880]" />
+              <ShieldCheck size={12} className="text-[#C5A880] shrink-0" />
               <span>Secure checkout with Razorpay</span>
             </span>
             <span className="hidden sm:inline text-white/25">&bull;</span>
-            <span className="flex items-center gap-1.5">
-              <Truck size={13} className="text-[#C5A880]" />
+            <span className="hidden xs:flex items-center gap-1.5">
+              <Truck size={12} className="text-[#C5A880] shrink-0" />
               <span>Order updates in your account</span>
             </span>
             <span className="hidden lg:inline text-white/25">&bull;</span>
             <span className="hidden lg:flex items-center gap-1.5">
-              <Briefcase size={13} className="text-[#C5A880]" />
+              <Briefcase size={12} className="text-[#C5A880] shrink-0" />
               <span>Corporate & Institutional Bulk Pricing</span>
             </span>
           </div>
 
           {/* Right Utility Navigation */}
-          <div className="flex items-center gap-4 text-xs font-medium text-[#F7F5F0]/85 shrink-0">
+          <div className="flex items-center justify-center gap-2.5 sm:gap-4 text-[10px] sm:text-xs font-medium text-[#F7F5F0]/85 shrink-0">
             <button
               onClick={() => setCorporateModalOpen(true)}
               className="text-[#C5A880] hover:underline cursor-pointer font-semibold flex items-center gap-1"
             >
-              <Sparkles size={11} />
+              <Sparkles size={11} className="shrink-0" />
               <span>Bulk Enquiry</span>
             </button>
             <span className="text-white/25">|</span>
@@ -442,7 +453,7 @@ export const Header: React.FC = () => {
               href="tel:+919768001999"
               className="hover:text-[#C5A880] transition-colors flex items-center gap-1"
             >
-              <PhoneCall size={11} className="text-[#C5A880]" />
+              <PhoneCall size={11} className="text-[#C5A880] shrink-0" />
               <span>+91 97680 01999</span>
             </a>
           </div>
@@ -457,24 +468,24 @@ export const Header: React.FC = () => {
             : 'bg-[#FDFCF8]/92 backdrop-blur-md border-[#E8E5DE]'
         }`}
       >
-        <div className="w-full px-4 sm:px-8 xl:px-12 h-18 md:h-20 flex items-center justify-between">
+        <div className="w-full px-3 sm:px-8 xl:px-12 h-16 sm:h-18 md:h-20 flex items-center justify-between gap-2">
           {/* Mobile hamburger trigger */}
           <button
             onClick={() => setMobileMenuOpen(true)}
-            className="p-2 -ml-2 text-[#242620] hover:text-[#78836A] lg:hidden cursor-pointer"
+            className="p-2 -ml-1 text-[#242620] hover:text-[#78836A] lg:hidden cursor-pointer rounded-lg hover:bg-[#EFEEE8]"
             aria-label="Open mobile navigation menu"
           >
             <Menu size={22} />
           </button>
 
             {/* Brand Logo & Identification */}
-            <Link href="/" className="flex items-center group py-1" aria-label="ErgoCraft Seating Home">
+            <Link href="/" className="flex items-center group py-1 shrink-0" aria-label="ErgoCraft Seating Home">
               <Image
                 src="/images/logo.png"
                 alt="ErgoCraft Seating Pvt. Ltd. - Ergo Comfort, Expertly Crafted"
-                width={200}
-                height={65}
-                className="w-[150px] sm:w-[170px] md:w-[190px] h-auto object-contain transition-opacity hover:opacity-90"
+                width={190}
+                height={62}
+                className="w-[125px] xs:w-[145px] sm:w-[170px] md:w-[190px] h-auto object-contain transition-opacity hover:opacity-90"
                 priority
               />
             </Link>
@@ -802,24 +813,24 @@ export const Header: React.FC = () => {
           />
 
           {/* Drawer content */}
-          <div className="fixed inset-y-0 left-0 max-w-sm w-full bg-white shadow-2xl flex flex-col p-6 overflow-y-auto">
+          <div className="fixed inset-y-0 left-0 max-w-[320px] xs:max-w-sm w-full bg-white shadow-2xl flex flex-col p-4 sm:p-6 overflow-y-auto z-10">
             {/* Header with Brand & Close */}
-            <div className="flex items-center justify-between pb-4 border-b border-[#E8E5DE]">
+            <div className="flex items-center justify-between pb-3 sm:pb-4 border-b border-[#E8E5DE]">
               <Link href="/" onClick={() => setMobileMenuOpen(false)} aria-label="ErgoCraft Seating Home">
                 <Image
                   src="/images/logo.png"
                   alt="ErgoCraft Seating Pvt. Ltd."
-                  width={155}
-                  height={51}
-                  className="w-36 h-auto object-contain"
+                  width={140}
+                  height={46}
+                  className="w-32 xs:w-36 h-auto object-contain"
                 />
               </Link>
               <button
                 onClick={() => setMobileMenuOpen(false)}
-                className="p-1.5 text-[#73756F] hover:text-[#242620] rounded-full hover:bg-[#EFEEE8]"
+                className="p-2 -mr-1 text-[#73756F] hover:text-[#242620] rounded-full hover:bg-[#EFEEE8] cursor-pointer"
                 aria-label="Close mobile navigation"
               >
-                <X size={20} />
+                <X size={22} />
               </button>
             </div>
 

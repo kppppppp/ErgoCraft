@@ -139,56 +139,56 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
       </div>
 
       {/* 2. Structured Product Information & Social Proof */}
-      <div className="p-4 sm:p-5 flex-1 flex flex-col justify-between space-y-3 bg-white">
+      <div className="p-3 xs:p-3.5 sm:p-5 flex-1 flex flex-col justify-between space-y-2 xs:space-y-2.5 sm:space-y-3 bg-white">
         <div>
           {/* Category & Star Rating with Verified Review Count */}
-          <div className="flex items-center justify-between text-[11px] mb-1.5">
-            <span className="font-mono font-bold tracking-widest uppercase text-[#78836A]">
+          <div className="flex items-center justify-between text-[10px] sm:text-[11px] mb-1">
+            <span className="font-mono font-bold tracking-widest uppercase text-[#78836A] truncate max-w-[55%]">
               {categoryName}
             </span>
-            <div className="flex items-center gap-1 text-[#13231D] font-semibold">
-              <Star size={12} className="fill-amber-400 text-amber-400" />
+            <div className="flex items-center gap-1 text-[#13231D] font-semibold shrink-0">
+              <Star size={11} className="fill-amber-400 text-amber-400 shrink-0" />
               <span>{ratingScore}</span>
-              <span className="text-[#73756F] font-normal">({reviewCount})</span>
+              <span className="text-[#73756F] font-normal hidden xs:inline">({reviewCount})</span>
             </div>
           </div>
 
           {/* Clean Product Name */}
           <Link href={`/products/${product.slug}`} className="block">
-            <h3 className="font-semibold text-sm sm:text-[15px] text-[#13231D] group-hover:text-[#78836A] transition-colors line-clamp-1 leading-snug">
+            <h3 className="font-semibold text-xs xs:text-sm sm:text-[15px] text-[#13231D] group-hover:text-[#78836A] transition-colors line-clamp-1 leading-snug">
               {cleanName}
             </h3>
           </Link>
 
           {/* Trust Guarantees Row */}
-          <div className="pt-2 flex items-center gap-3 text-[11px] text-[#59644E]">
-            <span className="inline-flex items-center gap-1 font-medium">
-              <Truck size={12} className="text-[#78836A]" />
-              <span>Free Pan-India Delivery</span>
+          <div className="pt-1.5 xs:pt-2 flex items-center gap-2 xs:gap-3 text-[10px] sm:text-[11px] text-[#59644E]">
+            <span className="inline-flex items-center gap-1 font-medium truncate">
+              <Truck size={11} className="text-[#78836A] shrink-0" />
+              <span>Free Delivery</span>
             </span>
             <span className="text-gray-300">•</span>
-            <span className="inline-flex items-center gap-1 font-medium">
-              <ShieldCheck size={12} className="text-[#78836A]" />
-              <span>10-Yr Warranty</span>
+            <span className="inline-flex items-center gap-1 font-medium shrink-0">
+              <ShieldCheck size={11} className="text-[#78836A] shrink-0" />
+              <span>10-Yr</span>
             </span>
           </div>
         </div>
 
         {/* 3. Pricing & EMI Strip */}
-        <div className="pt-3 border-t border-[#F0EEE6] flex items-center justify-between">
-          <div>
-            <div className="flex items-baseline gap-2">
-              <span className="text-lg sm:text-xl font-bold text-[#13231D]">
+        <div className="pt-2 xs:pt-3 border-t border-[#F0EEE6] flex items-center justify-between gap-1">
+          <div className="min-w-0">
+            <div className="flex items-baseline gap-1.5 xs:gap-2">
+              <span className="text-sm xs:text-base sm:text-xl font-bold text-[#13231D]">
                 ₹{product.sellingPrice.toLocaleString('en-IN')}
               </span>
               {hasDiscount && (
-                <span className="text-xs text-[#73756F] line-through font-normal">
+                <span className="text-[10px] xs:text-xs text-[#73756F] line-through font-normal truncate">
                   ₹{product.mrp.toLocaleString('en-IN')}
                 </span>
               )}
             </div>
-            <span className="text-[10px] text-[#73756F] block mt-0.5">
-              or ₹{emiPerMonth.toLocaleString('en-IN')}/mo • No Cost EMI
+            <span className="text-[9px] xs:text-[10px] text-[#73756F] block mt-0.5 truncate">
+              or ₹{emiPerMonth.toLocaleString('en-IN')}/mo
             </span>
           </div>
 
@@ -196,7 +196,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
           <button
             onClick={handleQuickAdd}
             disabled={product.stock <= 0}
-            className={`sm:hidden px-3.5 py-2 rounded-xl text-xs font-bold tracking-wider uppercase transition flex items-center gap-1.5 cursor-pointer shadow-xs ${
+            className={`sm:hidden px-2.5 xs:px-3 py-1.5 xs:py-2 rounded-lg xs:rounded-xl text-[10px] xs:text-xs font-bold tracking-wider uppercase transition flex items-center gap-1 cursor-pointer shadow-xs shrink-0 ${
               added
                 ? 'bg-emerald-700 text-white'
                 : product.stock <= 0
@@ -204,7 +204,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
                 : 'bg-[#13231D] text-white active:scale-95'
             }`}
           >
-            {added ? <Check size={13} /> : <ShoppingBag size={13} />}
+            {added ? <Check size={12} /> : <ShoppingBag size={12} />}
             <span>{added ? 'Added' : 'Add'}</span>
           </button>
         </div>

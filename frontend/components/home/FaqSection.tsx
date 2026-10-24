@@ -49,20 +49,20 @@ export function FaqSection() {
           <p className="mt-3 max-w-md text-sm leading-relaxed text-[#666A61] font-light">
             Direct factory answers regarding deliveries, warranties, corporate orders, and factory visits.
           </p>
-          <div className="mt-6 flex flex-col sm:flex-row gap-3">
+          <div className="mt-5 sm:mt-6 flex flex-col sm:flex-row gap-2.5 sm:gap-3">
             <a
               href="https://wa.me/919768001999?text=Hi%20ErgoCraft,%20I%20have%20a%20question%20about%20your%20seating"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 text-xs font-semibold px-4 py-2.5 rounded-xl bg-emerald-700 text-white hover:bg-emerald-800 transition"
+              className="inline-flex items-center justify-center gap-2 text-xs font-semibold px-4 py-2.5 rounded-xl bg-emerald-700 text-white hover:bg-emerald-800 transition text-center"
             >
-              <MessageCircle size={15} /> WhatsApp: +91 97680 01999
+              <MessageCircle size={15} /> <span>WhatsApp: +91 97680 01999</span>
             </a>
             <a
               href="mailto:support@ergocraft.in"
-              className="inline-flex items-center gap-2 text-xs font-semibold px-4 py-2.5 rounded-xl border border-[#DFE1D8] text-[#59644E] hover:text-[#252A23] hover:border-[#78836A] transition bg-white"
+              className="inline-flex items-center justify-center gap-2 text-xs font-semibold px-4 py-2.5 rounded-xl border border-[#DFE1D8] text-[#59644E] hover:text-[#252A23] hover:border-[#78836A] transition bg-white text-center"
             >
-              <Mail size={15} /> support@ergocraft.in
+              <Mail size={15} /> <span>support@ergocraft.in</span>
             </a>
           </div>
         </div>

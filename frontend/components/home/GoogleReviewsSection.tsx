@@ -86,10 +86,10 @@ export const GoogleReviewsSection: React.FC = () => {
     <section className="bg-white py-16 sm:py-24 border-b border-[#E7E5DC]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header: Google Rating Badge & Trust Headline */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10 sm:mb-12">
           <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#F5F4EC] border border-[#E7E5DC] mb-3">
-              <svg className="w-4 h-4" viewBox="0 0 24 24">
+            <div className="inline-flex items-center gap-2 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full bg-[#F5F4EC] border border-[#E7E5DC] mb-2.5 sm:mb-3">
+              <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" viewBox="0 0 24 24">
                 <path
                   fill="#4285F4"
                   d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
@@ -107,33 +107,33 @@ export const GoogleReviewsSection: React.FC = () => {
                   d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
                 />
               </svg>
-              <span className="text-xs font-semibold text-[#20251F] tracking-wide">
+              <span className="text-[11px] sm:text-xs font-semibold text-[#20251F] tracking-wide">
                 Google Customer Reviews
               </span>
             </div>
 
-            <h2 className="font-serif-luxury text-3xl sm:text-4xl lg:text-[42px] font-normal text-[#1F241F] tracking-tight leading-tight">
+            <h2 className="font-serif-luxury text-2xl xs:text-3xl sm:text-4xl lg:text-[42px] font-normal text-[#1F241F] tracking-tight leading-tight">
               Loved by Architects, <br className="hidden sm:inline" />
               <span className="italic font-serif text-[#78836A]">Founders & Homeowners.</span>
             </h2>
 
-            <div className="flex items-center gap-3 mt-3">
+            <div className="flex flex-wrap items-center gap-2 sm:gap-3 mt-2 sm:mt-3">
               <div className="flex items-center gap-1 text-[#FBBC05]">
                 {[...Array(5)].map((_, i) => (
-                  <Star key={i} size={18} fill="#FBBC05" />
+                  <Star key={i} size={16} fill="#FBBC05" />
                 ))}
               </div>
-              <span className="text-sm font-bold text-[#1F241F]">4.9 out of 5</span>
-              <span className="text-xs text-[#71736D]">• Based on verified Google & Factory reviews</span>
+              <span className="text-xs sm:text-sm font-bold text-[#1F241F]">4.9 out of 5</span>
+              <span className="text-[11px] sm:text-xs text-[#71736D]">• Verified Reviews</span>
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-3">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-3 w-full sm:w-auto">
             <a
               href={GOOGLE_MAPS_URL}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl border border-[#D5D2C7] hover:border-[#1F241F] bg-white text-xs sm:text-sm font-semibold text-[#1F241F] hover:shadow-sm transition-all"
+              className="inline-flex items-center justify-center gap-2 px-4 sm:px-5 py-2.5 rounded-xl border border-[#D5D2C7] hover:border-[#1F241F] bg-white text-xs sm:text-sm font-semibold text-[#1F241F] hover:shadow-sm transition-all text-center"
             >
               <span>View Google Reviews</span>
               <ExternalLink size={14} />
@@ -142,7 +142,7 @@ export const GoogleReviewsSection: React.FC = () => {
               href="https://wa.me/919768001999?text=Hi%20ErgoCraft,%20I%20would%20like%20to%20visit%20your%20Bhiwandi%20factory%20experience%20centre"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#25D366] hover:bg-[#1EBE5D] text-white text-xs sm:text-sm font-semibold shadow-sm hover:shadow-md transition-all"
+              className="inline-flex items-center justify-center gap-2 px-4 sm:px-5 py-2.5 rounded-xl bg-[#25D366] hover:bg-[#1EBE5D] text-white text-xs sm:text-sm font-semibold shadow-sm hover:shadow-md transition-all text-center"
             >
               <MessageCircle size={15} />
               <span>WhatsApp Us</span>
