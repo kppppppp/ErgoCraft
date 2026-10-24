@@ -40,19 +40,23 @@ const parseOrigins = (...sources) => {
   return origins;
 };
 
+const defaultAllowedOrigins = [
+  'https://ergo-craft.vercel.app',
+  'https://ergo-craft-qedw.vercel.app',
+  'https://ergocraft.in',
+  'https://www.ergocraft.in',
+  'http://localhost:3000',
+  'http://localhost:3001',
+  'http://127.0.0.1:3000',
+  'http://127.0.0.1:3001',
+];
+
 const allowedOrigins = parseOrigins(
+  ...defaultAllowedOrigins,
   config.frontendUrl,
   config.adminUrl,
   process.env.ALLOWED_ORIGINS
 );
-
-// Always ensure development localhost origins are permitted in non-production
-if (config.env !== 'production') {
-  allowedOrigins.add('http://localhost:3000');
-  allowedOrigins.add('http://localhost:3001');
-  allowedOrigins.add('http://127.0.0.1:3000');
-  allowedOrigins.add('http://127.0.0.1:3001');
-}
 
 app.use(
   cors({

@@ -7,17 +7,32 @@
  */
 export function getApiBaseUrl(): string {
   const envUrl = process.env.NEXT_PUBLIC_API_URL;
-  if (!envUrl || !envUrl.trim()) {
-    return 'http://localhost:5000/api/v1';
+  if (envUrl && envUrl.trim()) {
+    const trimmed = envUrl.trim().replace(/\/+$/, '');
+    if (trimmed.endsWith('/api/v1')) {
+      return trimmed;
+    }
+    if (trimmed.endsWith('/api')) {
+      return `${trimmed}/v1`;
+    }
+    return `${trimmed}/api/v1`;
   }
-  const trimmed = envUrl.trim().replace(/\/+$/, '');
-  if (trimmed.endsWith('/api/v1')) {
-    return trimmed;
+
+  // If running in a browser on a non-localhost domain (e.g. deployed to Vercel),
+  // automatically target the production Render backend instead of dead localhost.
+  if (typeof window !== 'undefined') {
+    const host = window.location.hostname;
+    if (host && host !== 'localhost' && host !== '127.0.0.1' && !host.startsWith('192.168.') && !host.startsWith('10.')) {
+      return 'https://ergocraft-1.onrender.com/api/v1';
+    }
   }
-  if (trimmed.endsWith('/api')) {
-    return `${trimmed}/v1`;
+
+  // In production server environment on Vercel
+  if (process.env.NODE_ENV === 'production' && (process.env.VERCEL || process.env.VERCEL_ENV)) {
+    return 'https://ergocraft-1.onrender.com/api/v1';
   }
-  return `${trimmed}/api/v1`;
+
+  return 'http://localhost:5000/api/v1';
 }
 
 export function resolveApiUrl(endpoint: string): string {

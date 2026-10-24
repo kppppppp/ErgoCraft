@@ -34,7 +34,11 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
   const [codEnabled, setCodEnabled] = useState<boolean>(true);
   const [togglingCod, setTogglingCod] = useState<boolean>(false);
 
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+  const siteUrl =
+    process.env.NEXT_PUBLIC_SITE_URL ||
+    (typeof window !== 'undefined' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1'
+      ? 'https://ergo-craft.vercel.app'
+      : 'http://localhost:3000');
 
   useEffect(() => {
     const checkHealthAndSettings = async () => {

@@ -5,8 +5,8 @@ export const config = {
   env: process.env.NODE_ENV || 'development',
   port: parseInt(process.env.PORT, 10) || 5000,
   mongoUri: process.env.MONGO_URI || process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/ergocraft',
-  frontendUrl: process.env.FRONTEND_URL || 'http://localhost:3000',
-  adminUrl: process.env.ADMIN_URL || 'http://localhost:3001',
+  frontendUrl: process.env.FRONTEND_URL || 'https://ergo-craft.vercel.app',
+  adminUrl: process.env.ADMIN_URL || 'https://ergo-craft-qedw.vercel.app',
   // The verified sender is also the business owner inbox for this store unless
   // an explicit notification recipient is configured separately.
   orderNotificationEmail: process.env.ORDER_NOTIFICATION_EMAIL || process.env.BREVO_SENDER_EMAIL || '',
