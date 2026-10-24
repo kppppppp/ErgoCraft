@@ -51,14 +51,15 @@ export const LoungeEditorialSection: React.FC = () => {
                 {spruce.description}
               </p>
 
-              {/* Genuine Studio Photography of Chair with Ottoman */}
-              <div className="relative my-6 sm:my-8 h-[280px] sm:h-[360px] w-full rounded-2xl overflow-hidden bg-[#FAF8F5] border border-[#EBE6DC] shadow-xs">
+              {/* Genuine Cutout of Chair with Ottoman */}
+              <div className="relative my-6 sm:my-8 h-[280px] sm:h-[360px] w-full flex items-center justify-center">
+                <div className="absolute inset-0 bg-radial from-[#758169]/10 via-transparent to-transparent rounded-full blur-xl pointer-events-none" />
                 <Image
                   src={spruce.image}
                   alt={spruce.name}
                   fill
                   sizes="(max-width: 1024px) 100vw, 55vw"
-                  className="object-cover transition-transform duration-500 group-hover:scale-105"
+                  className="object-contain transition-transform duration-500 group-hover:scale-105"
                 />
               </div>
             </div>

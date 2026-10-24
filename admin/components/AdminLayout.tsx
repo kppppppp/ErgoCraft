@@ -5,7 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '../lib/auth';
-import { fetchApi } from '../lib/api';
+import { fetchApi, resolveApiUrl } from '../lib/api';
 import {
   LayoutDashboard,
   Armchair,
@@ -34,25 +34,21 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
   const [codEnabled, setCodEnabled] = useState<boolean>(true);
   const [togglingCod, setTogglingCod] = useState<boolean>(false);
 
-  const apiBase = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api/v1';
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
 
   useEffect(() => {
     const checkHealthAndSettings = async () => {
       try {
-        const res = await fetch(`${apiBase}/health`);
+        const res = await fetch(resolveApiUrl('/health'));
         setServerOnline(res.ok);
       } catch {
         setServerOnline(false);
       }
 
       try {
-        const res = await fetch(`${apiBase}/settings`);
-        if (res.ok) {
-          const json = await res.json();
-          if (json.data && typeof json.data.codEnabled === 'boolean') {
-            setCodEnabled(json.data.codEnabled);
-          }
+        const res = await fetchApi<{ codEnabled: boolean }>('/settings');
+        if (typeof res.data?.codEnabled === 'boolean') {
+          setCodEnabled(res.data.codEnabled);
         }
       } catch {
         // Fallback default
@@ -62,7 +58,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
     checkHealthAndSettings();
     const interval = setInterval(checkHealthAndSettings, 30000);
     return () => clearInterval(interval);
-  }, [apiBase]);
+  }, []);
 
   const handleToggleCod = async () => {
     if (togglingCod) return;

@@ -35,6 +35,10 @@ const nextConfig: NextConfig = {
         protocol: 'https',
         hostname: 'www.ergocraft.in',
       },
+      {
+        protocol: 'https',
+        hostname: 'ergocraft.in',
+      },
     ],
   },
   async headers() {

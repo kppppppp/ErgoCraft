@@ -25,14 +25,50 @@ const app = express();
 app.use(helmet());
 
 // CORS configuration supporting credentials from Storefront & Admin
-// Only the explicitly configured storefront and admin origins may make
-// credentialed browser requests. Local defaults are set in config/env.js.
-const allowedOrigins = new Set([config.frontendUrl, config.adminUrl].filter(Boolean));
+// Parses origins from FRONTEND_URL, ADMIN_URL, and ALLOWED_ORIGINS environment variables.
+// Supports comma-separated strings and strips trailing slashes cleanly.
+const parseOrigins = (...sources) => {
+  const origins = new Set();
+  for (const source of sources) {
+    if (!source) continue;
+    const parts = String(source).split(',');
+    for (const part of parts) {
+      const trimmed = part.trim().replace(/\/+$/, '');
+      if (trimmed) origins.add(trimmed);
+    }
+  }
+  return origins;
+};
+
+const allowedOrigins = parseOrigins(
+  config.frontendUrl,
+  config.adminUrl,
+  process.env.ALLOWED_ORIGINS
+);
+
+// Always ensure development localhost origins are permitted in non-production
+if (config.env !== 'production') {
+  allowedOrigins.add('http://localhost:3000');
+  allowedOrigins.add('http://localhost:3001');
+  allowedOrigins.add('http://127.0.0.1:3000');
+  allowedOrigins.add('http://127.0.0.1:3001');
+}
 
 app.use(
   cors({
     origin: (origin, callback) => {
-      if (!origin || allowedOrigins.has(origin)) {
+      if (!origin) {
+        return callback(null, true);
+      }
+      const normalizedOrigin = origin.trim().replace(/\/+$/, '');
+      if (allowedOrigins.has(normalizedOrigin)) {
+        return callback(null, true);
+      }
+      // Allow preview deployments if ALLOW_VERCEL_PREVIEWS is enabled or *.vercel.app is listed
+      if (
+        (process.env.ALLOW_VERCEL_PREVIEWS === 'true' || allowedOrigins.has('*.vercel.app')) &&
+        /^https:\/\/[a-z0-9-]+(?:\.[a-z0-9-]+)*\.vercel\.app$/i.test(normalizedOrigin)
+      ) {
         return callback(null, true);
       }
       return callback(new Error('Origin is not allowed by CORS'));
@@ -40,6 +76,7 @@ app.use(
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Idempotency-Key'],
+    maxAge: 86400,
   })
 );
 
@@ -58,8 +95,8 @@ app.use(cookieParser());
 // General API rate limiter
 app.use('/api', apiLimiter);
 
-// Health check endpoint
-app.get('/api/v1/health', (req, res) => {
+// Health check handler (served on both /health and /api/v1/health)
+const handleHealthCheck = (req, res) => {
   const dbState = mongoose.connection.readyState;
   const dbStateMap = {
     0: 'disconnected',
@@ -78,7 +115,10 @@ app.get('/api/v1/health', (req, res) => {
   };
 
   return res.status(200).json(new ApiResponse(200, healthData, 'Ergocraft API is healthy and operational'));
-});
+};
+
+app.get('/health', handleHealthCheck);
+app.get('/api/v1/health', handleHealthCheck);
 
 // Mount modular API routes under /api/v1
 app.use('/api/v1/auth', authRoutes);
