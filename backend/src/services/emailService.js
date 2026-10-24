@@ -97,7 +97,11 @@ class EmailService {
     const address = order.shippingAddress || {};
     const shipping = [address.street, address.landmark, address.city, address.state, address.postalCode, address.country].filter(Boolean).map(escapeHtml).join(', ');
     const date = new Date(order.createdAt || Date.now()).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' });
-    const adminUrl = process.env.ADMIN_URL ? `${process.env.ADMIN_URL.replace(/\/$/, '')}/orders?id=${encodeURIComponent(order._id)}` : '';
+    let adminBase = (process.env.ADMIN_URL || config.adminUrl || '').split(',')[0].trim().replace(/\/+$/, '');
+    if (!adminBase || ((config.env === 'production' || process.env.NODE_ENV === 'production') && (adminBase.includes('localhost') || adminBase.includes('127.0.0.1')))) {
+      adminBase = 'https://ergo-craft-qedw.vercel.app';
+    }
+    const adminUrl = adminBase ? `${adminBase}/orders?id=${encodeURIComponent(order._id)}` : '';
     const subject = `New confirmed order ${order.orderNumber} — Ergocraft`;
     const textContent = [
       `Order ${order.orderNumber} (${date})`, `Customer: ${order.customerDetails?.name || ''}`,

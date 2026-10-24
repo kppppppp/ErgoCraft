@@ -148,7 +148,29 @@ export const forgotPassword = asyncHandler(async (req, res) => {
   const resetToken = user.createPasswordResetToken();
   await user.save({ validateBeforeSave: false });
 
-  const resetUrl = `${config.frontendUrl}/reset-password?token=${resetToken}`;
+  // Resolve frontend base URL: prioritize incoming request origin (e.g. https://ergo-craft.vercel.app),
+  // falling back to FRONTEND_URL or production default.
+  const originHeader = (req.get('origin') || req.get('referer') || '').trim();
+  let candidateOrigin = '';
+  if (originHeader) {
+    try {
+      const parsed = new URL(originHeader);
+      candidateOrigin = parsed.origin;
+    } catch {
+      // ignore parse errors
+    }
+  }
+
+  const configuredFrontend = (config.frontendUrl || process.env.FRONTEND_URL || '').split(',')[0].trim().replace(/\/+$/, '');
+  let frontendBase = candidateOrigin || configuredFrontend;
+
+  // In production or if frontendBase points to localhost, ensure we fall back to the live storefront
+  if (!frontendBase || ((config.env === 'production' || process.env.NODE_ENV === 'production') && (frontendBase.includes('localhost') || frontendBase.includes('127.0.0.1')))) {
+    frontendBase = 'https://ergo-craft.vercel.app';
+  }
+  frontendBase = frontendBase.replace(/\/+$/, '');
+
+  const resetUrl = `${frontendBase}/reset-password?token=${resetToken}`;
 
   try {
     const emailResult = await emailService.sendPasswordResetEmail(user.email, resetUrl);
