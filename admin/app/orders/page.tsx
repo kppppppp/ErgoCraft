@@ -1,17 +1,13 @@
 'use client';
 
-import React, { useCallback, useEffect, useState, Suspense } from 'react';
+import React, { useCallback, useEffect, useRef, useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { fetchApi } from '../../lib/api';
 import {
   Search,
-  Filter,
   ShoppingBag,
-  ExternalLink,
   Truck,
   CheckCircle2,
-  Clock,
-  XCircle,
   AlertCircle,
   Eye,
   X,
@@ -96,7 +92,43 @@ function OrdersContent() {
   const [modalMsg, setModalMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [retryingNotification, setRetryingNotification] = useState('');
 
-  const openDetailModal = (order: OrderItem) => {
+  // Modal lifecycle & concurrency control
+  const modalAbortControllerRef = useRef<AbortController | null>(null);
+  const activeOrderIdRef = useRef<string | null>(null);
+  const initialOrderHandledRef = useRef(false);
+
+  const handleCloseModal = useCallback(() => {
+    // 1. Immediately abort any in-flight requests for this modal
+    if (modalAbortControllerRef.current) {
+      modalAbortControllerRef.current.abort();
+      modalAbortControllerRef.current = null;
+    }
+    // 2. Mark no order active so background promises discard results
+    activeOrderIdRef.current = null;
+
+    // 3. Immediately reset UI modal state
+    setSelectedOrder(null);
+    setUpdating(false);
+    setRetryingNotification('');
+    setModalMsg(null);
+
+    // 4. Clean up ?id= query param from URL if present without triggering page reload
+    if (typeof window !== 'undefined' && window.location.search.includes('id=')) {
+      const url = new URL(window.location.href);
+      url.searchParams.delete('id');
+      const newRelative = url.pathname + (url.searchParams.toString() ? `?${url.searchParams.toString()}` : '');
+      window.history.replaceState(null, '', newRelative);
+    }
+  }, []);
+
+  const openDetailModal = useCallback((order: OrderItem) => {
+    // Abort prior in-flight request if any
+    if (modalAbortControllerRef.current) {
+      modalAbortControllerRef.current.abort();
+    }
+    modalAbortControllerRef.current = new AbortController();
+    activeOrderIdRef.current = order._id;
+
     setSelectedOrder(order);
     setNewFulfilment(order.fulfilmentStatus);
     setNewPaymentStatus(order.paymentStatus);
@@ -105,7 +137,44 @@ function OrdersContent() {
     setTrackingUrl(order.tracking?.trackingUrl || '');
     setAdminNote('');
     setModalMsg(null);
-  };
+    setUpdating(false);
+    setRetryingNotification('');
+  }, []);
+
+  // Escape key handler to dismiss modal immediately
+  useEffect(() => {
+    if (!selectedOrder) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        handleCloseModal();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [selectedOrder, handleCloseModal]);
+
+  // Prevent background page from scrolling while modal is active
+  useEffect(() => {
+    if (selectedOrder) {
+      const originalOverflow = document.body.style.overflow;
+      document.body.style.overflow = 'hidden';
+      return () => {
+        document.body.style.overflow = originalOverflow;
+      };
+    }
+  }, [selectedOrder]);
+
+  // Cleanup abort controller on component unmount
+  useEffect(() => {
+    return () => {
+      modalAbortControllerRef.current?.abort();
+    };
+  }, []);
 
   const loadOrders = useCallback(async () => {
     setLoading(true);
@@ -118,16 +187,19 @@ function OrdersContent() {
       const res = await fetchApi<{ orders: OrderItem[] }>(`/orders/admin/all?${q.toString()}`);
       setOrders(res.data.orders);
 
-      if (initialOrderId) {
+      if (initialOrderId && !initialOrderHandledRef.current) {
         const found = res.data.orders.find((o) => o._id === initialOrderId);
-        if (found) openDetailModal(found);
+        if (found) {
+          initialOrderHandledRef.current = true;
+          openDetailModal(found);
+        }
       }
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Failed to load orders');
     } finally {
       setLoading(false);
     }
-  }, [search, paymentStatus, fulfilmentStatus, initialOrderId]);
+  }, [search, paymentStatus, fulfilmentStatus, initialOrderId, openDetailModal]);
 
   useEffect(() => {
     const timer = window.setTimeout(() => void loadOrders(), 0);
@@ -142,14 +214,22 @@ function OrdersContent() {
   const handleUpdateStatus = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedOrder) return;
+    const currentOrderId = selectedOrder._id;
+
+    if (modalAbortControllerRef.current) {
+      modalAbortControllerRef.current.abort();
+    }
+    const controller = new AbortController();
+    modalAbortControllerRef.current = controller;
 
     setUpdating(true);
     setModalMsg(null);
     try {
       const res = await fetchApi<{ order: OrderItem }>(
-        `/orders/admin/${selectedOrder._id}/status`,
+        `/orders/admin/${currentOrderId}/status`,
         {
           method: 'PATCH',
+          signal: controller.signal,
           body: JSON.stringify({
             fulfilmentStatus: newFulfilment,
             paymentStatus: newPaymentStatus,
@@ -161,32 +241,72 @@ function OrdersContent() {
         }
       );
 
-      // Update in local state
-      setSelectedOrder(res.data.order);
+      // Always update the order in the background list table
       setOrders((prev) => prev.map((o) => (o._id === res.data.order._id ? res.data.order : o)));
+
+      // If modal was closed or switched to another order while in flight, discard modal updates
+      if (activeOrderIdRef.current !== currentOrderId) {
+        return;
+      }
+
+      setSelectedOrder(res.data.order);
       setModalMsg({ type: 'success', text: 'Order status & shipment details updated successfully!' });
     } catch (err: unknown) {
+      if (controller.signal.aborted || (err as { name?: string })?.name === 'AbortError') {
+        return;
+      }
+      if (activeOrderIdRef.current !== currentOrderId) {
+        return;
+      }
       setModalMsg({ type: 'error', text: err instanceof Error ? err.message : 'Failed to update order status' });
     } finally {
-      setUpdating(false);
+      if (activeOrderIdRef.current === currentOrderId) {
+        setUpdating(false);
+      }
     }
   };
 
   const retryNotification = async (type: 'customer' | 'owner' | 'shipping') => {
     if (!selectedOrder) return;
+    const currentOrderId = selectedOrder._id;
+
+    if (modalAbortControllerRef.current) {
+      modalAbortControllerRef.current.abort();
+    }
+    const controller = new AbortController();
+    modalAbortControllerRef.current = controller;
+
     setRetryingNotification(type);
     setModalMsg(null);
     try {
-      await fetchApi(`/orders/admin/${selectedOrder._id}/notifications/${type}/retry`, { method: 'POST' });
-      const refreshed = await fetchApi<{ order: OrderItem }>(`/orders/${selectedOrder._id}`);
+      await fetchApi(`/orders/admin/${currentOrderId}/notifications/${type}/retry`, {
+        method: 'POST',
+        signal: controller.signal,
+      });
+
+      if (activeOrderIdRef.current !== currentOrderId) return;
+
+      const refreshed = await fetchApi<{ order: OrderItem }>(`/orders/${currentOrderId}`, {
+        signal: controller.signal,
+      });
+
       const order = refreshed.data.order;
-      setSelectedOrder(order);
       setOrders((current) => current.map((item) => item._id === order._id ? order : item));
+
+      if (activeOrderIdRef.current !== currentOrderId) return;
+
+      setSelectedOrder(order);
       setModalMsg({ type: 'success', text: 'Email service accepted the notification.' });
     } catch (err: unknown) {
+      if (controller.signal.aborted || (err as { name?: string })?.name === 'AbortError') {
+        return;
+      }
+      if (activeOrderIdRef.current !== currentOrderId) return;
       setModalMsg({ type: 'error', text: err instanceof Error ? err.message : 'Notification retry failed' });
     } finally {
-      setRetryingNotification('');
+      if (activeOrderIdRef.current === currentOrderId) {
+        setRetryingNotification('');
+      }
     }
   };
 
@@ -346,12 +466,21 @@ function OrdersContent() {
 
       {/* Order Detail Modal */}
       {selectedOrder && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-white rounded-xl max-w-3xl w-full p-6 space-y-6 shadow-2xl border border-gray-200 my-8 animate-in fade-in zoom-in-95">
-            {/* Header */}
-            <div className="flex items-center justify-between pb-3 border-b border-gray-200">
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="order-modal-title"
+          onClick={handleCloseModal}
+          className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-3 sm:p-4 md:p-6 overflow-hidden cursor-pointer"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white rounded-xl max-w-3xl w-full max-h-[calc(100dvh-2rem)] flex flex-col shadow-2xl border border-gray-200 animate-in fade-in zoom-in-95 cursor-default relative overflow-hidden"
+          >
+            {/* Header (Pinned / Sticky at Top) */}
+            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 bg-white shrink-0 z-10">
               <div>
-                <h3 className="text-lg font-serif font-bold text-[#1E1B18]">
+                <h3 id="order-modal-title" className="text-lg font-serif font-bold text-[#1E1B18]">
                   Order #{selectedOrder.orderNumber}
                 </h3>
                 <span className="text-xs text-[#78716C]">
@@ -359,14 +488,18 @@ function OrdersContent() {
                 </span>
               </div>
               <button
-                onClick={() => setSelectedOrder(null)}
-                className="text-gray-400 hover:text-gray-600 p-1 rounded-md"
+                type="button"
+                onClick={handleCloseModal}
+                aria-label="Close order details"
+                className="text-gray-400 hover:text-gray-700 active:text-gray-900 p-2 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#667151]"
               >
                 <X size={20} />
               </button>
             </div>
 
-            {/* Customer & Shipping Summary */}
+            {/* Scrollable Content Region */}
+            <div className="flex-1 min-h-0 overflow-y-auto p-6 space-y-6">
+              {/* Customer & Shipping Summary */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-[#FAF8F5] p-4 rounded-lg border border-[#E8E2D9] text-xs">
               <div>
                 <h4 className="font-semibold uppercase tracking-wider text-[#667151] mb-1.5">
@@ -619,7 +752,7 @@ function OrdersContent() {
               <h4 className="text-xs font-semibold uppercase tracking-wider text-[#78716C] mb-2">
                 Order Activity & Status Audit Trail
               </h4>
-              <div className="space-y-2 max-h-40 overflow-y-auto pr-1">
+              <div className="space-y-2">
                 {selectedOrder.statusHistory.map((item, idx) => (
                   <div
                     key={idx}
@@ -639,9 +772,10 @@ function OrdersContent() {
             </div>
           </div>
         </div>
-      )}
-    </div>
-  );
+      </div>
+    )}
+  </div>
+);
 }
 
 export default function OrdersPage() {
