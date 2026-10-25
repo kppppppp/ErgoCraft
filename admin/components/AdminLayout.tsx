@@ -88,6 +88,10 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
           <div className="w-10 h-10 border-3 border-[#667151] border-t-transparent rounded-full animate-spin"></div>
           <p className="text-sm font-medium text-[#78716C] tracking-wide">Loading Ergocraft Portal...</p>
         </div>
+        {/* Keep children mounted in a hidden container so Next.js instant navigation validation can validate route segments */}
+        <div className="hidden" aria-hidden="true">
+          {children}
+        </div>
       </div>
     );
   }
@@ -98,10 +102,8 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
   }
 
   const navItems = [
-    { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
     { label: 'Products', href: '/products', icon: Armchair },
     { label: 'Categories', href: '/categories', icon: FolderTree },
-    { label: 'Orders', href: '/orders', icon: ShoppingBag },
   ];
 
   return (
@@ -169,7 +171,19 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
             );
           })}
 
-          <div className="pt-4 mt-4 border-t border-white/10">
+          <div className="pt-4 mt-4 border-t border-white/10 space-y-1">
+            <Link
+              href="/orders"
+              onClick={() => setMobileOpen(false)}
+              className={`flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-xs font-semibold uppercase tracking-wider transition-all ${
+                pathname === '/orders' || pathname?.startsWith('/orders/')
+                  ? 'bg-[#667151] text-white shadow-sm'
+                  : 'text-white/60 hover:bg-white/5 hover:text-white'
+              }`}
+            >
+              <ShoppingBag size={17} />
+              <span>Orders</span>
+            </Link>
             <a
               href={siteUrl}
               target="_blank"

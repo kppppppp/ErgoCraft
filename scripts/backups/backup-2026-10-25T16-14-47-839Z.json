@@ -1,0 +1,249 @@
+{
+  "categories": [
+    {
+      "_id": "6ada1e1beeb132c57f0e2198",
+      "name": "Sofas",
+      "slug": "sofas",
+      "parent": null,
+      "description": "Handcrafted luxury sofas tailored for distinguished executive lounges and bespoke residential interiors.",
+      "image": {
+        "url": "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?q=80&w=800&auto=format&fit=crop"
+      },
+      "sortOrder": 2,
+      "isActive": true,
+      "createdAt": "2026-10-22T14:30:51.617Z",
+      "updatedAt": "2026-10-22T14:30:51.617Z",
+      "__v": 0
+    },
+    {
+      "_id": "6ada1e1beeb132c57f0e219b",
+      "name": "Soft Seating",
+      "slug": "soft-seating",
+      "parent": null,
+      "description": "Sculptural lounge chairs, dining seating, and cafe stools fusing comfort with architectural form.",
+      "image": {
+        "url": "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?q=80&w=800&auto=format&fit=crop"
+      },
+      "sortOrder": 3,
+      "isActive": true,
+      "createdAt": "2026-10-22T14:30:51.654Z",
+      "updatedAt": "2026-10-22T14:30:51.654Z",
+      "__v": 0
+    },
+    {
+      "_id": "6ada1e1beeb132c57f0e219d",
+      "name": "Mesh Chairs",
+      "slug": "mesh-chairs",
+      "parent": "6ada2b6fc0c5965755d0a9a7",
+      "description": "Breathable high-tensile mesh seating for all-day thermal comfort.",
+      "sortOrder": 1,
+      "isActive": true,
+      "createdAt": "2026-10-22T14:30:51.686Z",
+      "updatedAt": "2026-10-24T15:47:29.833Z",
+      "__v": 0
+    },
+    {
+      "_id": "6ada1e1beeb132c57f0e21a0",
+      "name": "Leatherette Chairs",
+      "slug": "leatherette-chairs",
+      "parent": "6ada2b6fc0c5965755d0a9a7",
+      "description": "Supple artisanal leatherette chairs with opulent executive styling.",
+      "sortOrder": 2,
+      "isActive": true,
+      "createdAt": "2026-10-22T14:30:51.717Z",
+      "updatedAt": "2026-10-24T15:47:12.150Z",
+      "__v": 0
+    },
+    {
+      "_id": "6ada1e1beeb132c57f0e21a2",
+      "name": "Workstation Cushion Chairs",
+      "slug": "workstation-chairs",
+      "parent": "6ada1e1beeb132c57f0e2195",
+      "description": "Dense molded cushion task seating built for endurance.",
+      "sortOrder": 3,
+      "isActive": true,
+      "createdAt": "2026-10-22T14:30:51.749Z",
+      "updatedAt": "2026-10-22T14:30:51.749Z",
+      "__v": 0
+    },
+    {
+      "_id": "6ada1e1beeb132c57f0e21a5",
+      "name": "3-Seater Sofa",
+      "slug": "3-seater-sofa",
+      "parent": "6ada1e1beeb132c57f0e2198",
+      "sortOrder": 1,
+      "isActive": true,
+      "createdAt": "2026-10-22T14:30:51.786Z",
+      "updatedAt": "2026-10-22T14:30:51.786Z",
+      "__v": 0
+    },
+    {
+      "_id": "6ada1e1beeb132c57f0e21a7",
+      "name": "2-Seater Sofa",
+      "slug": "2-seater-sofa",
+      "parent": "6ada1e1beeb132c57f0e2198",
+      "sortOrder": 2,
+      "isActive": true,
+      "createdAt": "2026-10-22T14:30:51.828Z",
+      "updatedAt": "2026-10-22T14:30:51.828Z",
+      "__v": 0
+    },
+    {
+      "_id": "6ada1e1beeb132c57f0e21a9",
+      "name": "Lounge Chairs",
+      "slug": "lounge-chairs",
+      "parent": "6ada1e1beeb132c57f0e219b",
+      "sortOrder": 1,
+      "isActive": true,
+      "createdAt": "2026-10-22T14:30:51.868Z",
+      "updatedAt": "2026-10-22T14:30:51.868Z",
+      "__v": 0
+    },
+    {
+      "_id": "6ada1e1beeb132c57f0e21ab",
+      "name": "Dining Chairs",
+      "slug": "dining-chairs",
+      "parent": "6ada1e1beeb132c57f0e219b",
+      "sortOrder": 2,
+      "isActive": true,
+      "createdAt": "2026-10-22T14:30:51.921Z",
+      "updatedAt": "2026-10-22T14:30:51.921Z",
+      "__v": 0
+    },
+    {
+      "_id": "6ada1e1beeb132c57f0e21ad",
+      "name": "Cafe Chairs",
+      "slug": "cafe-chairs",
+      "parent": "6ada1e1beeb132c57f0e219b",
+      "sortOrder": 3,
+      "isActive": true,
+      "createdAt": "2026-10-22T14:30:51.961Z",
+      "updatedAt": "2026-10-22T14:30:51.961Z",
+      "__v": 0
+    },
+    {
+      "_id": "6ada2b4573bd15c40eba3238",
+      "name": "COD Chairs",
+      "slug": "cod-chairs",
+      "parent": null,
+      "sortOrder": 0,
+      "isActive": true,
+      "createdAt": "2026-10-22T15:27:01.632Z",
+      "updatedAt": "2026-10-22T15:27:01.632Z",
+      "__v": 0
+    },
+    {
+      "_id": "6ada2b6fc0c5965755d0a9a7",
+      "name": "Office Chairs",
+      "slug": "office-chairs",
+      "parent": null,
+      "sortOrder": 0,
+      "isActive": true,
+      "createdAt": "2026-10-22T15:27:43.025Z",
+      "updatedAt": "2026-10-22T15:27:43.025Z",
+      "__v": 0
+    }
+  ],
+  "products": [
+    {
+      "_id": "6ade25e3401db8ebfff9f761",
+      "name": "Apollo High back chair",
+      "slug": "apollo-high-back-chair",
+      "sku": "EC-AHBC-523",
+      "category": "6ada2b6fc0c5965755d0a9a7",
+      "subcategory": "6ada1e1beeb132c57f0e21a0",
+      "description": "Metal framework in high quality leatherette\n\nCushioned back design with lumbar support curve\n\nPP silver handles with leatherette cushion padding\n\nCentre tilt multi-position locking mechanism\n\nGaslift class IV for seat height adjustment\n\nChrome base with nylon castors\n\nBeige Mushroom shade Leatherette",
+      "shortDescription": "",
+      "specifications": [
+        {
+          "key": "Material",
+          "value": "high quality leatherette"
+        },
+        {
+          "key": "Mechanism",
+          "value": "multi-position locking mechanism"
+        },
+        {
+          "key": "Base",
+          "value": "Chrome base with nylon castors"
+        }
+      ],
+      "mrp": 7800,
+      "sellingPrice": 6400,
+      "discountPercentage": 18,
+      "currency": "INR",
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/vzey693n/image/upload/v1792943521/ergocraft/products/dyjxz96vq3jpk5der6na.jpg",
+          "publicId": "ergocraft/products/dyjxz96vq3jpk5der6na",
+          "altText": "Apollo High back chair",
+          "isPrimary": true,
+          "sortOrder": 0
+        }
+      ],
+      "stock": 10,
+      "isBestseller": true,
+      "isFeatured": true,
+      "status": "published",
+      "warranty": "1 Years Manufacturer Warranty",
+      "shippingDetails": {
+        "estimatedDays": 5,
+        "freeShipping": true,
+        "shippingCharge": 0
+      },
+      "createdAt": "2026-10-25T15:53:07.067Z",
+      "updatedAt": "2026-10-25T15:53:07.067Z",
+      "__v": 0
+    },
+    {
+      "_id": "6ade26d9401db8ebfff9f79d",
+      "name": "Cube Medium back chair",
+      "slug": "cube-medium-back-chair",
+      "sku": "EC-CMBC-464",
+      "category": "6ada2b6fc0c5965755d0a9a7",
+      "subcategory": "6ada1e1beeb132c57f0e21a0",
+      "description": "Bend plywood backrest with foam cushion and fabric\n\nT shaped PP handles\n\nPush back mechanism\n\nClass IV gaslift for height adjustment\n\nChrome base with Nylon Castor\n\nMaroon Colour fabric",
+      "shortDescription": "",
+      "specifications": [
+        {
+          "key": "Material",
+          "value": "Bend plywood backrest with foam cushion and fabric"
+        },
+        {
+          "key": "Mechanism",
+          "value": "Class IV gaslift for height adjustment"
+        },
+        {
+          "key": "Base",
+          "value": "Chrome base with Nylon Castor"
+        }
+      ],
+      "mrp": 3600,
+      "sellingPrice": 2600,
+      "discountPercentage": 28,
+      "currency": "INR",
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/vzey693n/image/upload/v1792943771/ergocraft/products/r1jmopkiikqsudoiuovr.jpg",
+          "publicId": "ergocraft/products/r1jmopkiikqsudoiuovr",
+          "altText": "Cube Medium back chair",
+          "isPrimary": true,
+          "sortOrder": 0
+        }
+      ],
+      "stock": 10,
+      "isBestseller": false,
+      "isFeatured": false,
+      "status": "published",
+      "warranty": "1 Years Manufacturer Warranty",
+      "shippingDetails": {
+        "estimatedDays": 5,
+        "freeShipping": true,
+        "shippingCharge": 0
+      },
+      "createdAt": "2026-10-25T15:57:13.335Z",
+      "updatedAt": "2026-10-25T15:57:13.335Z",
+      "__v": 0
+    }
+  ]
+}

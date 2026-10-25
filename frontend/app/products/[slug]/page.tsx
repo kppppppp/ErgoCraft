@@ -117,16 +117,18 @@ function ProductDetailContent() {
   }
 
   const primaryImg = product.images?.[activeImageIndex] || product.images?.[0];
-  const categoryName =
-    typeof product.category === 'object' && product.category !== null
-      ? product.category.name
-      : typeof product.category === 'string'
-      ? product.category
-      : 'Office Seating';
-  const categorySlug =
-    typeof product.category === 'object' && product.category !== null
-      ? product.category.slug
-      : 'office-chairs';
+
+  const getCatInfo = (cat: any) => {
+    if (!cat) return null;
+    if (typeof cat === 'object') {
+      return { name: cat.name || '', slug: cat.slug || '' };
+    }
+    return { name: cat, slug: cat.toLowerCase().replace(/\s+/g, '-') };
+  };
+
+  const catInfo = getCatInfo(product.category) || { name: 'Office Seating', slug: 'office-chairs' };
+  const subcatInfo = getCatInfo(product.subcategory);
+  const classInfo = getCatInfo(product.classification);
 
   const handleAddToCart = () => {
     addToCart(product, quantity);
@@ -156,19 +158,41 @@ function ProductDetailContent() {
   return (
     <div className="w-full max-w-[1720px] mx-auto px-4 sm:px-6 lg:px-10 py-6 sm:py-8 lg:py-10 space-y-16 animate-fade-up">
       {/* 1. Breadcrumb Trail */}
-      <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-xs text-[#73756F]">
+      <nav aria-label="Breadcrumb" className="flex items-center flex-wrap gap-1.5 text-xs text-[#73756F]">
         <Link href="/" className="hover:text-[#78836A] transition-colors">
           Home
         </Link>
-        <ChevronRight size={12} className="text-gray-400" />
+        <ChevronRight size={12} className="text-gray-400 shrink-0" />
         <Link href="/products" className="hover:text-[#78836A] transition-colors">
           Catalogue
         </Link>
-        <ChevronRight size={12} className="text-gray-400" />
-        <Link href={`/products?category=${categorySlug}`} className="hover:text-[#78836A] transition-colors">
-          {categoryName}
+        <ChevronRight size={12} className="text-gray-400 shrink-0" />
+        <Link href={`/products?category=${catInfo.slug}`} className="hover:text-[#78836A] transition-colors">
+          {catInfo.name}
         </Link>
-        <ChevronRight size={12} className="text-gray-400" />
+        {subcatInfo && (
+          <>
+            <ChevronRight size={12} className="text-gray-400 shrink-0" />
+            <Link
+              href={`/products?category=${catInfo.slug}&subcategory=${subcatInfo.slug}`}
+              className="hover:text-[#78836A] transition-colors"
+            >
+              {subcatInfo.name}
+            </Link>
+          </>
+        )}
+        {classInfo && (
+          <>
+            <ChevronRight size={12} className="text-gray-400 shrink-0" />
+            <Link
+              href={`/products?category=${catInfo.slug}&subcategory=${subcatInfo?.slug || ''}&classification=${classInfo.slug}`}
+              className="hover:text-[#78836A] transition-colors"
+            >
+              {classInfo.name}
+            </Link>
+          </>
+        )}
+        <ChevronRight size={12} className="text-gray-400 shrink-0" />
         <span className="text-[#13231D] font-semibold truncate max-w-xs">{product.name}</span>
       </nav>
 
@@ -251,9 +275,11 @@ function ProductDetailContent() {
         {/* Right Column: Purchasing & Specifications (Span 5) */}
         <div className="lg:col-span-5 space-y-6">
           <div className="space-y-2">
-            <div className="flex items-center gap-3">
+            <div className="flex items-center flex-wrap gap-2">
               <span className="text-xs font-bold uppercase tracking-widest text-[#78836A]">
-                {categoryName}
+                {catInfo.name}
+                {subcatInfo && ` › ${subcatInfo.name}`}
+                {classInfo && ` › ${classInfo.name}`}
               </span>
               <span className="text-xs text-gray-300">•</span>
               <div className="flex items-center gap-1 text-xs font-semibold text-[#13231D]">
@@ -299,11 +325,32 @@ function ProductDetailContent() {
             </div>
           </div>
 
-          {/* Short Highlight Description */}
+          {/* Short Highlight Description & Attribute Badges */}
           {product.shortDescription && (
             <p className="text-xs sm:text-sm text-[#242620] leading-relaxed bg-[#F7F5F0] p-4 rounded-xl border border-[#E8E5DE]">
               {product.shortDescription}
             </p>
+          )}
+
+          {/* Key Attributes Pills */}
+          {product.attributes && Object.values(product.attributes).some(Boolean) && (
+            <div className="flex flex-wrap items-center gap-2">
+              {product.attributes.material && (
+                <span className="px-2.5 py-1 rounded-lg bg-white border border-[#E8E5DE] text-[11px] font-medium text-[#13231D] shadow-2xs">
+                  Material: <strong className="text-[#78836A]">{product.attributes.material}</strong>
+                </span>
+              )}
+              {product.attributes.backrestHeight && (
+                <span className="px-2.5 py-1 rounded-lg bg-white border border-[#E8E5DE] text-[11px] font-medium text-[#13231D] shadow-2xs">
+                  Backrest: <strong className="text-[#78836A]">{product.attributes.backrestHeight}</strong>
+                </span>
+              )}
+              {product.attributes.mechanism && (
+                <span className="px-2.5 py-1 rounded-lg bg-white border border-[#E8E5DE] text-[11px] font-medium text-[#13231D] shadow-2xs">
+                  Mechanism: <strong className="text-[#78836A]">{product.attributes.mechanism}</strong>
+                </span>
+              )}
+            </div>
           )}
 
           {/* Stock Status Indicator */}
@@ -439,6 +486,65 @@ function ProductDetailContent() {
           <p className="text-sm text-[#242620] leading-relaxed whitespace-pre-line">
             {product.description}
           </p>
+
+          {/* Ergonomic Specifications & Materials */}
+          {product.attributes && Object.values(product.attributes).some(Boolean) && (
+            <div className="pt-4">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-[#78836A] mb-3">
+                Ergonomic Specifications & Materials
+              </h3>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                {product.attributes.material && (
+                  <div className="p-3.5 bg-white rounded-xl border border-[#E8E5DE] shadow-2xs">
+                    <span className="text-[10px] uppercase font-bold text-[#73756F] block mb-0.5">Primary Material</span>
+                    <span className="text-xs font-bold text-[#13231D]">{product.attributes.material}</span>
+                  </div>
+                )}
+                {product.attributes.backrestHeight && (
+                  <div className="p-3.5 bg-white rounded-xl border border-[#E8E5DE] shadow-2xs">
+                    <span className="text-[10px] uppercase font-bold text-[#73756F] block mb-0.5">Backrest Profile</span>
+                    <span className="text-xs font-bold text-[#13231D]">{product.attributes.backrestHeight}</span>
+                  </div>
+                )}
+                {product.attributes.mechanism && (
+                  <div className="p-3.5 bg-white rounded-xl border border-[#E8E5DE] shadow-2xs">
+                    <span className="text-[10px] uppercase font-bold text-[#73756F] block mb-0.5">Mechanism</span>
+                    <span className="text-xs font-bold text-[#13231D]">{product.attributes.mechanism}</span>
+                  </div>
+                )}
+                {product.attributes.armrests && (
+                  <div className="p-3.5 bg-white rounded-xl border border-[#E8E5DE] shadow-2xs">
+                    <span className="text-[10px] uppercase font-bold text-[#73756F] block mb-0.5">Armrest Support</span>
+                    <span className="text-xs font-bold text-[#13231D]">{product.attributes.armrests}</span>
+                  </div>
+                )}
+                {product.attributes.colour && (
+                  <div className="p-3.5 bg-white rounded-xl border border-[#E8E5DE] shadow-2xs">
+                    <span className="text-[10px] uppercase font-bold text-[#73756F] block mb-0.5">Color Finish</span>
+                    <span className="text-xs font-bold text-[#13231D]">{product.attributes.colour}</span>
+                  </div>
+                )}
+                {product.attributes.weightCapacity && (
+                  <div className="p-3.5 bg-white rounded-xl border border-[#E8E5DE] shadow-2xs">
+                    <span className="text-[10px] uppercase font-bold text-[#73756F] block mb-0.5">Weight Tested</span>
+                    <span className="text-xs font-bold text-[#13231D]">{product.attributes.weightCapacity}</span>
+                  </div>
+                )}
+                {product.attributes.dimensions && (
+                  <div className="p-3.5 bg-white rounded-xl border border-[#E8E5DE] shadow-2xs">
+                    <span className="text-[10px] uppercase font-bold text-[#73756F] block mb-0.5">Overall Dimensions</span>
+                    <span className="text-xs font-bold text-[#13231D]">{product.attributes.dimensions}</span>
+                  </div>
+                )}
+                {product.attributes.upholstery && (
+                  <div className="p-3.5 bg-white rounded-xl border border-[#E8E5DE] shadow-2xs">
+                    <span className="text-[10px] uppercase font-bold text-[#73756F] block mb-0.5">Upholstery</span>
+                    <span className="text-xs font-bold text-[#13231D]">{product.attributes.upholstery}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
 
           {/* Technical Specifications Table */}
           {product.specifications && product.specifications.length > 0 && (

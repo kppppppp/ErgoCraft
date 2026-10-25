@@ -11,15 +11,31 @@ export interface ProductImage {
   sortOrder?: number;
 }
 
+export interface ProductAttributes {
+  material?: string;
+  backrestHeight?: string;
+  colour?: string;
+  armrests?: string;
+  mechanism?: string;
+  weightCapacity?: string;
+  upholstery?: string;
+  dimensions?: string;
+}
+
 export interface CategorySummary {
   _id: string;
   name: string;
   slug: string;
-  parent?: string | null;
+  parent?: string | { _id: string; name: string; slug: string } | null;
   description?: string;
   image?: { url: string; publicId?: string };
   sortOrder?: number;
+  isActive?: boolean;
+  showInNavbar?: boolean;
   subcategories?: CategorySummary[];
+  children?: CategorySummary[];
+  level?: number;
+  productCount?: number;
 }
 
 export interface Product {
@@ -29,9 +45,12 @@ export interface Product {
   sku: string;
   category: CategorySummary | string;
   subcategory?: CategorySummary | string | null;
+  classification?: CategorySummary | string | null;
+  categories?: string[];
   description: string;
   shortDescription?: string;
   specifications?: ProductSpecification[];
+  attributes?: ProductAttributes;
   mrp: number;
   sellingPrice: number;
   discountPercentage: number;

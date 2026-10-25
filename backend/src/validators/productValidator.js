@@ -7,6 +7,7 @@ export const createProductSchema = z.object({
     sku: z.string().min(2, 'SKU is required').max(50),
     category: z.string().min(1, 'Category is required'),
     subcategory: z.string().optional().nullable(),
+    classification: z.string().optional().nullable(),
     description: z.string().min(10, 'Description must be at least 10 characters'),
     shortDescription: z.string().optional(),
     specifications: z
@@ -16,6 +17,18 @@ export const createProductSchema = z.object({
           value: z.string().min(1),
         })
       )
+      .optional(),
+    attributes: z
+      .object({
+        material: z.string().optional(),
+        backrestHeight: z.string().optional(),
+        colour: z.string().optional(),
+        armrests: z.string().optional(),
+        mechanism: z.string().optional(),
+        weightCapacity: z.string().optional(),
+        upholstery: z.string().optional(),
+        dimensions: z.string().optional(),
+      })
       .optional(),
     mrp: z.number().min(0, 'MRP must be positive'),
     sellingPrice: z.number().min(0, 'Selling price must be positive'),

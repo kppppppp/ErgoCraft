@@ -19,6 +19,20 @@ const productImageSchema = new mongoose.Schema(
   { _id: false }
 );
 
+const productAttributesSchema = new mongoose.Schema(
+  {
+    material: { type: String, trim: true, default: '' },
+    backrestHeight: { type: String, trim: true, default: '' },
+    colour: { type: String, trim: true, default: '' },
+    armrests: { type: String, trim: true, default: '' },
+    mechanism: { type: String, trim: true, default: '' },
+    weightCapacity: { type: String, trim: true, default: '' },
+    upholstery: { type: String, trim: true, default: '' },
+    dimensions: { type: String, trim: true, default: '' },
+  },
+  { _id: false }
+);
+
 const productSchema = new mongoose.Schema(
   {
     name: {
@@ -41,16 +55,31 @@ const productSchema = new mongoose.Schema(
       uppercase: true,
       trim: true,
     },
+    // Level 1: Main category (Office Chairs, Sofas, Soft Seating, etc.)
     category: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Category',
       required: [true, 'Please assign a category'],
     },
+    // Level 2: Child category / product family / material (Leatherette Chairs, Mesh Chairs, 3-Seater Sofa, etc.)
     subcategory: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Category',
       default: null,
     },
+    // Level 3: Specific product classification (High Back, Medium Back, Cushion, Workstation, Staff, etc.)
+    classification: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Category',
+      default: null,
+    },
+    // All categories in the product hierarchy path for fast, indexed ancestor/descendant lookups
+    categories: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Category',
+      },
+    ],
     description: {
       type: String,
       required: [true, 'Please provide a product description'],
@@ -58,8 +87,13 @@ const productSchema = new mongoose.Schema(
     shortDescription: {
       type: String,
       trim: true,
+      default: '',
     },
     specifications: [specificationSchema],
+    attributes: {
+      type: productAttributesSchema,
+      default: () => ({}),
+    },
     mrp: {
       type: Number,
       required: [true, 'Please provide MRP'],
@@ -119,23 +153,43 @@ const productSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true },
   }
 );
 
-// Calculate discount percentage before saving
+// Calculate discount percentage and sync categories array before saving
 productSchema.pre('save', function (next) {
   if (this.mrp > 0 && this.sellingPrice > 0) {
     this.discountPercentage = Math.round(((this.mrp - this.sellingPrice) / this.mrp) * 100);
   } else {
     this.discountPercentage = 0;
   }
+
+  // Sync categories array to contain all distinct category IDs in the hierarchy
+  const rawCatIds = [this.category, this.subcategory, this.classification].filter(Boolean);
+  const uniqueIds = [];
+  const seen = new Set();
+  for (const id of rawCatIds) {
+    const idStr = id.toString();
+    if (!seen.has(idStr)) {
+      seen.add(idStr);
+      uniqueIds.push(id);
+    }
+  }
+  this.categories = uniqueIds;
+
   next();
 });
 
 // Indexes for fast searching, filtering, and sorting
-productSchema.index({ category: 1, subcategory: 1, status: 1 });
+productSchema.index({ categories: 1, status: 1 });
+productSchema.index({ category: 1, subcategory: 1, classification: 1, status: 1 });
 productSchema.index({ isBestseller: 1, isFeatured: 1 });
 productSchema.index({ sellingPrice: 1 });
+productSchema.index({ 'attributes.material': 1 });
+productSchema.index({ 'attributes.backrestHeight': 1 });
+productSchema.index({ 'attributes.colour': 1 });
 productSchema.index({ name: 'text', description: 'text', sku: 'text' });
 
 export const Product = mongoose.model('Product', productSchema);

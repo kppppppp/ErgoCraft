@@ -29,6 +29,32 @@ const startServer = async () => {
       }
     }
 
+    // Ensure all existing products have synchronized categories array
+    try {
+      const unlinkedProducts = await Product.find({
+        $or: [{ categories: { $exists: false } }, { categories: { $size: 0 } }],
+      });
+      if (unlinkedProducts.length > 0) {
+        for (const p of unlinkedProducts) {
+          const rawIds = [p.category, p.subcategory, p.classification].filter(Boolean);
+          const seen = new Set();
+          const unique = [];
+          for (const id of rawIds) {
+            const s = id.toString();
+            if (!seen.has(s)) {
+              seen.add(s);
+              unique.push(id);
+            }
+          }
+          p.categories = unique;
+          await p.save();
+        }
+        console.log(`[Ergocraft API] Synchronized taxonomy categories array for ${unlinkedProducts.length} product(s).`);
+      }
+    } catch (syncErr) {
+      console.error('[Ergocraft API] Taxonomy self-heal warning:', syncErr.message);
+    }
+
     const server = app.listen(config.port, () => {
       console.log(`[Ergocraft API] Server listening on http://localhost:${config.port} in ${config.env} mode`);
     });

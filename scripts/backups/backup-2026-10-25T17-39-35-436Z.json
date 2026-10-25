@@ -1,0 +1,110 @@
+{
+  "categories": [
+    {
+      "_id": "6ade3eca625c0c03a62953b0",
+      "name": "Office Chairs",
+      "slug": "office-chairs",
+      "parent": null,
+      "description": "",
+      "image": {
+        "url": "",
+        "publicId": ""
+      },
+      "sortOrder": 1,
+      "isActive": true,
+      "showInNavbar": true,
+      "createdAt": "2026-10-25T17:39:22.015Z",
+      "updatedAt": "2026-10-25T17:39:22.015Z",
+      "__v": 0
+    },
+    {
+      "_id": "6ade3eca625c0c03a62953b5",
+      "name": "Leatherette Chairs",
+      "slug": "leatherette-chairs",
+      "parent": "6ade3eca625c0c03a62953b0",
+      "description": "",
+      "image": {
+        "url": "",
+        "publicId": ""
+      },
+      "sortOrder": 1,
+      "isActive": true,
+      "showInNavbar": true,
+      "createdAt": "2026-10-25T17:39:22.218Z",
+      "updatedAt": "2026-10-25T17:39:22.218Z",
+      "__v": 0
+    },
+    {
+      "_id": "6ade3eca625c0c03a62953ba",
+      "name": "Leatherette High Back",
+      "slug": "leatherette-high-back",
+      "parent": "6ade3eca625c0c03a62953b5",
+      "description": "",
+      "image": {
+        "url": "",
+        "publicId": ""
+      },
+      "sortOrder": 1,
+      "isActive": true,
+      "showInNavbar": true,
+      "createdAt": "2026-10-25T17:39:22.401Z",
+      "updatedAt": "2026-10-25T17:39:22.401Z",
+      "__v": 0
+    }
+  ],
+  "products": [
+    {
+      "_id": "6ade3ecb625c0c03a62953cd",
+      "name": "Presidential Leatherette Chair V2",
+      "slug": "presidential-leatherette-chair",
+      "sku": "EC-TEST-001",
+      "category": "6ade3eca625c0c03a62953b0",
+      "subcategory": "6ade3eca625c0c03a62953b5",
+      "classification": "6ade3eca625c0c03a62953ba",
+      "categories": [
+        "6ade3eca625c0c03a62953b0",
+        "6ade3eca625c0c03a62953b5",
+        "6ade3eca625c0c03a62953ba"
+      ],
+      "description": "A luxurious test chair for presidential offices with dynamic support.",
+      "shortDescription": "",
+      "specifications": [],
+      "attributes": {
+        "material": "Premium Italian Leatherette",
+        "backrestHeight": "High Back",
+        "colour": "Midnight Black",
+        "armrests": "",
+        "mechanism": "",
+        "weightCapacity": "",
+        "upholstery": "",
+        "dimensions": ""
+      },
+      "mrp": 22000,
+      "sellingPrice": 16500,
+      "discountPercentage": 25,
+      "currency": "INR",
+      "images": [
+        {
+          "url": "https://images.unsplash.com/photo-1580481077195-c9a75d5a7d65",
+          "publicId": "",
+          "altText": "",
+          "isPrimary": false,
+          "sortOrder": 0
+        }
+      ],
+      "stock": 12,
+      "isBestseller": true,
+      "isFeatured": false,
+      "status": "published",
+      "warranty": "3 Years Manufacturer Warranty",
+      "shippingDetails": {
+        "estimatedDays": 5,
+        "freeShipping": true,
+        "shippingCharge": 0
+      },
+      "createdAt": "2026-10-25T17:39:23.278Z",
+      "updatedAt": "2026-10-25T17:39:25.226Z",
+      "__v": 0
+    }
+  ]
+}

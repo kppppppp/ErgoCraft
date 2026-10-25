@@ -16,8 +16,20 @@ function EditProductContent() {
     if (!id) return;
     const loadProduct = async () => {
       try {
-        const res = await fetchApi<{ product: ProductFormData }>(`/products/${id}`);
-        setProduct(res.data.product);
+        let prod: ProductFormData | null = null;
+        try {
+          const res = await fetchApi<{ product: ProductFormData }>(`/products/${id}`);
+          prod = res.data?.product;
+        } catch {
+          // Fallback to admin-specific item lookup route if public slug route failed
+          const res = await fetchApi<{ product: ProductFormData }>(`/products/admin/item/${id}`);
+          prod = res.data?.product;
+        }
+        if (prod) {
+          setProduct(prod);
+        } else {
+          setError('Product not found');
+        }
       } catch (err: unknown) {
         setError(err instanceof Error ? err.message : 'Product not found');
       } finally {

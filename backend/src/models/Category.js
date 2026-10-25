@@ -23,16 +23,21 @@ const categorySchema = new mongoose.Schema(
     description: {
       type: String,
       trim: true,
+      default: '',
     },
     image: {
-      url: { type: String },
-      publicId: { type: String },
+      url: { type: String, default: '' },
+      publicId: { type: String, default: '' },
     },
     sortOrder: {
       type: Number,
       default: 0,
     },
     isActive: {
+      type: Boolean,
+      default: true,
+    },
+    showInNavbar: {
       type: Boolean,
       default: true,
     },
@@ -44,13 +49,29 @@ const categorySchema = new mongoose.Schema(
   }
 );
 
-// Virtual for subcategories
+// Virtual for subcategories / children
 categorySchema.virtual('subcategories', {
   ref: 'Category',
   localField: '_id',
   foreignField: 'parent',
 });
 
+categorySchema.virtual('children', {
+  ref: 'Category',
+  localField: '_id',
+  foreignField: 'parent',
+});
+
+// Virtual parentId alias for parent
+categorySchema.virtual('parentId')
+  .get(function () {
+    return this.parent;
+  })
+  .set(function (val) {
+    this.parent = val;
+  });
+
 categorySchema.index({ parent: 1, sortOrder: 1 });
+categorySchema.index({ isActive: 1, showInNavbar: 1 });
 
 export const Category = mongoose.model('Category', categorySchema);

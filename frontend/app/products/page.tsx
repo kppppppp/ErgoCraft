@@ -6,7 +6,7 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { fetchApi } from '../../lib/api';
 import { ProductCard } from '../../components/ProductCard';
 import { FALLBACK_PRODUCTS } from '../../lib/fallbackProducts';
-import type { Product, CategorySummary, ProductsResponse, CategoriesResponse } from '../../lib/types';
+import type { Product, CategorySummary, ProductsResponse } from '../../lib/types';
 import {
   Search,
   Filter,
@@ -22,6 +22,8 @@ import {
   ShieldCheck,
   CheckCircle2,
   MessageCircle,
+  Tag,
+  Layers,
 } from 'lucide-react';
 
 function formatSlug(slug: string): string {
@@ -32,61 +34,28 @@ function formatSlug(slug: string): string {
     .join(' ');
 }
 
-interface CategoryHeroData {
-  badge: string;
-  title: string;
-  italicWord: string;
-  subtitle: string;
-  pillSubcategories: { name: string; slug: string | null }[];
-}
-
-const CATEGORY_HERO_CONFIG: Record<string, CategoryHeroData> = {
-  'office-chairs': {
-    badge: 'Precision Ergonomics',
-    title: 'High-Performance',
-    italicWord: 'Office Chairs',
-    subtitle:
-      'Engineered for 12+ hour postural alignment, synchronous spine mechanics, breathable Italian mesh, and active lumbar support. Direct from our Bhiwandi manufacturing facility.',
-    pillSubcategories: [
-      { name: 'All Chairs', slug: null },
-      { name: 'Mesh Chairs', slug: 'mesh-chairs' },
-      { name: 'Leatherette Chairs', slug: 'leatherette-chairs' },
-      { name: 'Workstation Chairs', slug: 'workstation-chairs' },
-    ],
-  },
-  sofas: {
-    badge: 'Artisanal Upholstery',
-    title: 'Handcrafted',
-    italicWord: 'Luxury Sofas',
-    subtitle:
-      'Kiln-dried solid hardwood joinery, high-resilience foam layered with pocket springs, and rich commercial-grade fabrics tailored for modern homes and executive lounges.',
-    pillSubcategories: [
-      { name: 'All Sofas', slug: null },
-      { name: '3-Seater Sofas', slug: '3-seater-sofa' },
-      { name: '2-Seater Sofas', slug: '2-seater-sofa' },
-    ],
-  },
-  'soft-seating': {
-    badge: 'Contemporary Architecture',
-    title: 'Modern Sculptural',
-    italicWord: 'Soft Seating',
-    subtitle:
-      'Organic silhouettes, acoustic breakout chairs, dining perches, and cafe seating crafted to bring refined warmth and relaxed posture to modern interiors.',
-    pillSubcategories: [
-      { name: 'All Soft Seating', slug: null },
-      { name: 'Lounge Chairs', slug: 'lounge-chairs' },
-      { name: 'Dining Chairs', slug: 'dining-chairs' },
-      { name: 'Cafe Chairs', slug: 'cafe-chairs' },
-    ],
-  },
-};
-
 const PRICE_PRESETS = [
   { label: 'All Prices', min: '', max: '' },
   { label: 'Under ₹10,000', min: '0', max: '10000' },
   { label: '₹10,000 - ₹20,000', min: '10000', max: '20000' },
   { label: '₹20,000 - ₹40,000', min: '20000', max: '40000' },
   { label: 'Above ₹40,000', min: '40000', max: '' },
+];
+
+const MATERIAL_FILTER_OPTIONS = [
+  { label: 'All Materials', value: '' },
+  { label: 'Leatherette', value: 'Leatherette' },
+  { label: 'Mesh', value: 'Mesh' },
+  { label: 'Fabric / Cushion', value: 'Fabric' },
+  { label: 'Velvet', value: 'Velvet' },
+  { label: 'Solid Wood / Bentwood', value: 'Wood' },
+];
+
+const BACKREST_FILTER_OPTIONS = [
+  { label: 'All Backrests', value: '' },
+  { label: 'High Back', value: 'High Back' },
+  { label: 'Medium Back', value: 'Medium Back' },
+  { label: 'Low Back', value: 'Low Back' },
 ];
 
 function CatalogContent() {
@@ -96,6 +65,9 @@ function CatalogContent() {
   // URL-driven query filters (single source of truth)
   const category = searchParams.get('category') || '';
   const subcategory = searchParams.get('subcategory') || '';
+  const classification = searchParams.get('classification') || '';
+  const material = searchParams.get('material') || '';
+  const backrestHeight = searchParams.get('backrestHeight') || '';
   const search = searchParams.get('q') || '';
   const sort = searchParams.get('sort') || 'newest';
   const pageParam = parseInt(searchParams.get('page') || '1', 10);
@@ -104,7 +76,8 @@ function CatalogContent() {
   const inStockOnly = searchParams.get('inStock') === 'true';
 
   const [products, setProducts] = useState<Product[]>([]);
-  const [categories, setCategories] = useState<CategorySummary[]>([]);
+  const [categoryTree, setCategoryTree] = useState<CategorySummary[]>([]);
+  const [flatCategories, setFlatCategories] = useState<CategorySummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
   const [customMin, setCustomMin] = useState(minPrice);
@@ -131,50 +104,43 @@ function CatalogContent() {
     router.push(`/products${queryString ? `?${queryString}` : ''}`);
   };
 
-  // Load Categories hierarchy once
+  // Load Categories hierarchy from backend
   useEffect(() => {
     let isMounted = true;
     const loadCategories = async () => {
       try {
-        const res = await fetchApi<CategoriesResponse>('/categories');
-        if (isMounted && res.data?.categories) {
-          setCategories(res.data.categories);
+        let tree: CategorySummary[] = [];
+        try {
+          const res = await fetchApi<{ tree?: CategorySummary[]; categories?: CategorySummary[] }>(
+            '/categories',
+            { cache: 'no-store' }
+          );
+          tree = res.data?.categories || res.data?.tree || [];
+        } catch {
+          const res = await fetchApi<{ tree?: CategorySummary[]; categories?: CategorySummary[] }>(
+            '/categories/tree',
+            { cache: 'no-store' }
+          );
+          tree = res.data?.tree || res.data?.categories || [];
+        }
+
+        if (isMounted && tree.length > 0) {
+          setCategoryTree(tree);
+
+          // Flatten tree for easy slug lookups
+          const flat: CategorySummary[] = [];
+          const traverse = (nodes: CategorySummary[]) => {
+            nodes.forEach((n) => {
+              flat.push(n);
+              if (n.children && n.children.length > 0) traverse(n.children);
+              if (n.subcategories && n.subcategories.length > 0) traverse(n.subcategories);
+            });
+          };
+          traverse(tree);
+          setFlatCategories(flat);
         }
       } catch {
-        // Fallback default category hierarchy
-        if (isMounted) {
-          setCategories([
-            {
-              _id: 'cat-01',
-              name: 'Office Chairs',
-              slug: 'office-chairs',
-              subcategories: [
-                { _id: 'sub-01', name: 'Mesh Chairs', slug: 'mesh-chairs' },
-                { _id: 'sub-02', name: 'Leatherette Chairs', slug: 'leatherette-chairs' },
-                { _id: 'sub-03', name: 'Workstation Chairs', slug: 'workstation-chairs' },
-              ],
-            },
-            {
-              _id: 'cat-02',
-              name: 'Sofas',
-              slug: 'sofas',
-              subcategories: [
-                { _id: 'sub-04', name: '3-Seater Sofa', slug: '3-seater-sofa' },
-                { _id: 'sub-05', name: '2-Seater Sofa', slug: '2-seater-sofa' },
-              ],
-            },
-            {
-              _id: 'cat-03',
-              name: 'Soft Seating',
-              slug: 'soft-seating',
-              subcategories: [
-                { _id: 'sub-06', name: 'Lounge Chairs', slug: 'lounge-chairs' },
-                { _id: 'sub-07', name: 'Dining Chairs', slug: 'dining-chairs' },
-                { _id: 'sub-08', name: 'Cafe Chairs', slug: 'cafe-chairs' },
-              ],
-            },
-          ]);
-        }
+        // Fallback hierarchy if offline
       }
     };
     loadCategories();
@@ -193,6 +159,9 @@ function CatalogContent() {
         if (search) q.set('q', search);
         if (category) q.set('category', category);
         if (subcategory) q.set('subcategory', subcategory);
+        if (classification) q.set('classification', classification);
+        if (material) q.set('material', material);
+        if (backrestHeight) q.set('backrestHeight', backrestHeight);
         if (sort) q.set('sort', sort);
         if (minPrice) q.set('minPrice', minPrice);
         if (maxPrice) q.set('maxPrice', maxPrice);
@@ -214,15 +183,14 @@ function CatalogContent() {
         }
       } catch {
         if (!isMounted) return;
-        setProducts([]);
-        setTotalPages(1);
-        setTotalCount(0);
+        // Fallback client filtering if backend unreachable
+        filterFallback();
       } finally {
         if (isMounted) setLoading(false);
       }
     };
 
-    const filterFallbackData = () => {
+    const filterFallback = () => {
       let result = [...FALLBACK_PRODUCTS];
 
       if (category) {
@@ -249,28 +217,9 @@ function CatalogContent() {
         );
       }
 
-      if (minPrice) {
-        result = result.filter((p) => p.sellingPrice >= Number(minPrice));
-      }
-
-      if (maxPrice) {
-        result = result.filter((p) => p.sellingPrice <= Number(maxPrice));
-      }
-
-      if (inStockOnly) {
-        result = result.filter((p) => p.stock > 0);
-      }
-
-      // Sort
-      if (sort === 'price_asc') {
-        result.sort((a, b) => a.sellingPrice - b.sellingPrice);
-      } else if (sort === 'price_desc') {
-        result.sort((a, b) => b.sellingPrice - a.sellingPrice);
-      } else if (sort === 'popular') {
-        result.sort((a, b) => (b.isBestseller ? 1 : 0) - (a.isBestseller ? 1 : 0));
-      } else if (sort === 'discount') {
-        result.sort((a, b) => b.discountPercentage - a.discountPercentage);
-      }
+      if (minPrice) result = result.filter((p) => p.sellingPrice >= Number(minPrice));
+      if (maxPrice) result = result.filter((p) => p.sellingPrice <= Number(maxPrice));
+      if (inStockOnly) result = result.filter((p) => p.stock > 0);
 
       setProducts(result);
       setTotalPages(Math.max(1, Math.ceil(result.length / 12)));
@@ -282,7 +231,7 @@ function CatalogContent() {
     return () => {
       isMounted = false;
     };
-  }, [category, subcategory, search, sort, minPrice, maxPrice, inStockOnly, pageParam]);
+  }, [category, subcategory, classification, material, backrestHeight, search, sort, minPrice, maxPrice, inStockOnly, pageParam]);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -301,65 +250,82 @@ function CatalogContent() {
     router.push('/products');
   };
 
-  // Find active category & subcategory objects
-  const activeCategoryDoc = useMemo(
-    () => categories.find((c) => c.slug === category),
-    [categories, category]
-  );
+  // Lookup active category objects from tree/flatCategories
+  const activeRootCategory = useMemo(() => {
+    if (!category) return null;
+    return categoryTree.find((c) => c.slug === category) || flatCategories.find((c) => c.slug === category);
+  }, [category, categoryTree, flatCategories]);
 
-  const activeSubcategoryDoc = useMemo(() => {
-    if (activeCategoryDoc?.subcategories) {
-      const match = activeCategoryDoc.subcategories.find((s) => s.slug === subcategory);
-      if (match) return match;
-    }
-    return categories.flatMap((c) => c.subcategories || []).find((s) => s.slug === subcategory);
-  }, [categories, activeCategoryDoc, subcategory]);
+  const activeSubcategory = useMemo(() => {
+    if (!subcategory) return null;
+    const subs = activeRootCategory?.children || activeRootCategory?.subcategories || [];
+    return subs.find((s) => s.slug === subcategory) || flatCategories.find((c) => c.slug === subcategory);
+  }, [subcategory, activeRootCategory, flatCategories]);
 
+  const activeClassification = useMemo(() => {
+    if (!classification) return null;
+    const classes = activeSubcategory?.children || activeSubcategory?.subcategories || [];
+    return classes.find((c) => c.slug === classification) || flatCategories.find((c) => c.slug === classification);
+  }, [classification, activeSubcategory, flatCategories]);
+
+  // Dynamic titles and subtitles
   let pageTitle = 'All Seating Catalogue';
-  let pageDesc = 'Browse our complete range of ergonomic office chairs, executive seating, handcrafted sofas, and breakout lounge furniture.';
+  let pageSubtitle =
+    'Engineered for 12+ hour postural alignment, synchronous spine mechanics, and high-performance durability. Direct from our Bhiwandi manufacturing facility.';
 
-  if (activeSubcategoryDoc) {
-    pageTitle = activeSubcategoryDoc.name;
-    pageDesc = `Explore premium ${activeSubcategoryDoc.name.toLowerCase()} engineered for ergonomics, durability, and contemporary style.`;
-  } else if (subcategory) {
-    pageTitle = formatSlug(subcategory);
-  } else if (activeCategoryDoc) {
-    pageTitle = activeCategoryDoc.name;
-    pageDesc = activeCategoryDoc.description || `Browse ErgoCraft ${activeCategoryDoc.name.toLowerCase()} collection.`;
-  } else if (category) {
-    pageTitle = formatSlug(category);
+  if (activeClassification) {
+    pageTitle = activeClassification.name;
+    pageSubtitle =
+      activeClassification.description ||
+      `Explore premium ${activeClassification.name.toLowerCase()} seating engineered for durability and supreme executive relaxation.`;
+  } else if (activeSubcategory) {
+    pageTitle = activeSubcategory.name;
+    pageSubtitle =
+      activeSubcategory.description ||
+      `Precision engineered ${activeSubcategory.name.toLowerCase()} for modern executive workspaces and high-performance teams.`;
+  } else if (activeRootCategory) {
+    pageTitle = activeRootCategory.name;
+    pageSubtitle =
+      activeRootCategory.description ||
+      `Explore the complete ErgoCraft ${activeRootCategory.name.toLowerCase()} collection.`;
+  } else if (search) {
+    pageTitle = `Search: "${search}"`;
+    pageSubtitle = `Showing available seating designs matching your search keyword.`;
   }
 
-  if (search) {
-    pageTitle = `Search Results for "${search}"`;
-    pageDesc = `Showing available seating matching your search term.`;
-  }
+  // Determine pill tabs for Hero section
+  const heroPillOptions = useMemo(() => {
+    if (activeSubcategory && (activeSubcategory.children || activeSubcategory.subcategories)?.length) {
+      const childList = activeSubcategory.children || activeSubcategory.subcategories || [];
+      return [
+        { name: `All ${activeSubcategory.name}`, classificationSlug: null },
+        ...childList.map((c) => ({ name: c.name, classificationSlug: c.slug })),
+      ];
+    }
+    if (activeRootCategory && (activeRootCategory.children || activeRootCategory.subcategories)?.length) {
+      const childList = activeRootCategory.children || activeRootCategory.subcategories || [];
+      return [
+        { name: `All ${activeRootCategory.name}`, subcategorySlug: null },
+        ...childList.map((c) => ({ name: c.name, subcategorySlug: c.slug })),
+      ];
+    }
+    return [
+      { name: 'All Seating', categorySlug: null },
+      { name: 'Office Chairs', categorySlug: 'office-chairs' },
+      { name: 'Sofas', categorySlug: 'sofas' },
+      { name: 'Soft Seating', categorySlug: 'soft-seating' },
+    ];
+  }, [activeRootCategory, activeSubcategory]);
 
   const hasActiveFilters = Boolean(
-    category || subcategory || search || inStockOnly || minPrice || maxPrice
+    category || subcategory || classification || material || backrestHeight || search || inStockOnly || minPrice || maxPrice
   );
-
-  const heroConfig = category ? CATEGORY_HERO_CONFIG[category] : null;
-  const pillOptions = heroConfig?.pillSubcategories || [
-    { name: 'All Seating', slug: null },
-    { name: 'Office Chairs', slug: 'office-chairs' },
-    { name: 'Sofas', slug: 'sofas' },
-    { name: 'Soft Seating', slug: 'soft-seating' },
-  ];
-
-  const handlePillClick = (slug: string | null) => {
-    if (category) {
-      updateUrlParams({ subcategory: slug });
-    } else {
-      updateUrlParams({ category: slug, subcategory: null });
-    }
-  };
 
   return (
     <div className="w-full max-w-[1720px] mx-auto px-4 sm:px-6 lg:px-10 py-6 sm:py-8 lg:py-10 animate-fade-up">
-      {/* 1. Breadcrumbs */}
+      {/* 1. Dynamic Breadcrumbs Reflecting Exact 3-Level Hierarchy */}
       <nav aria-label="Breadcrumb" className="mb-4">
-        <ol className="flex items-center gap-1.5 text-xs text-[#73756F]">
+        <ol className="flex flex-wrap items-center gap-1.5 text-xs text-[#73756F]">
           <li>
             <Link href="/" className="hover:text-[#78836A] flex items-center gap-1 transition-colors">
               <Home size={13} />
@@ -373,13 +339,14 @@ function CatalogContent() {
             <Link
               href="/products"
               className={`hover:text-[#78836A] transition-colors ${
-                !category && !subcategory && !search ? 'text-[#13231D] font-bold' : ''
+                !category && !subcategory && !classification && !search ? 'text-[#13231D] font-bold' : ''
               }`}
             >
               All Seating
             </Link>
           </li>
 
+          {/* Level 1 Breadcrumb */}
           {category && (
             <>
               <li>
@@ -389,22 +356,42 @@ function CatalogContent() {
                 <Link
                   href={`/products?category=${category}`}
                   className={`hover:text-[#78836A] transition-colors ${
-                    !subcategory ? 'text-[#13231D] font-bold' : ''
+                    !subcategory && !classification ? 'text-[#13231D] font-bold' : ''
                   }`}
                 >
-                  {activeCategoryDoc?.name || formatSlug(category)}
+                  {activeRootCategory?.name || formatSlug(category)}
                 </Link>
               </li>
             </>
           )}
 
+          {/* Level 2 Breadcrumb */}
           {subcategory && (
             <>
               <li>
                 <ChevronRight size={12} className="text-gray-400" />
               </li>
+              <li>
+                <Link
+                  href={`/products?category=${category}&subcategory=${subcategory}`}
+                  className={`hover:text-[#78836A] transition-colors ${
+                    !classification ? 'text-[#13231D] font-bold' : ''
+                  }`}
+                >
+                  {activeSubcategory?.name || formatSlug(subcategory)}
+                </Link>
+              </li>
+            </>
+          )}
+
+          {/* Level 3 Breadcrumb */}
+          {classification && (
+            <>
+              <li>
+                <ChevronRight size={12} className="text-gray-400" />
+              </li>
               <li className="text-[#13231D] font-bold">
-                {activeSubcategoryDoc?.name || formatSlug(subcategory)}
+                {activeClassification?.name || formatSlug(classification)}
               </li>
             </>
           )}
@@ -424,49 +411,66 @@ function CatalogContent() {
 
       {/* 2. Editorial Category Hero Banner */}
       <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#13231D] via-[#172C24] to-[#0E1A15] text-white p-6 sm:p-10 lg:p-12 mb-8 shadow-sm">
-        {/* Subtle decorative grain background */}
-        <div
-          className="absolute inset-0 opacity-20 pointer-events-none mix-blend-overlay bg-repeat"
-          style={{ backgroundImage: `url('/images/texture-grain-warm.png')`, backgroundSize: '240px 240px' }}
-        />
         <div className="relative z-10 max-w-4xl space-y-4">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/15 text-[11px] font-semibold text-[#CBD5C0] uppercase tracking-wider">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-            {heroConfig ? heroConfig.badge : 'Direct Factory Collection'}
+            <span>
+              {classification
+                ? 'Level 3 Specific Classification'
+                : subcategory
+                ? 'Level 2 Product Family'
+                : category
+                ? 'Level 1 Main Collection'
+                : 'Direct Factory Catalogue'}
+            </span>
           </div>
 
           <h1 className="font-serif-luxury text-3xl sm:text-5xl lg:text-6xl font-normal leading-[1.1] tracking-tight">
-            {heroConfig ? (
-              <>
-                {heroConfig.title} <span className="italic font-light text-[#D5DFC7]">{heroConfig.italicWord}</span>
-              </>
-            ) : search ? (
-              <>
-                Search Results for <span className="italic font-light text-[#D5DFC7]">&ldquo;{search}&rdquo;</span>
-              </>
-            ) : (
-              <>
-                The Complete <span className="italic font-light text-[#D5DFC7]">Seating Collection</span>
-              </>
-            )}
+            {pageTitle}
           </h1>
 
           <p className="text-xs sm:text-sm lg:text-base text-[#D0D4CD] leading-relaxed max-w-2xl font-light">
-            {heroConfig ? heroConfig.subtitle : pageDesc}
+            {pageSubtitle}
           </p>
 
-          {/* Quick Subcategory / Category Switcher Pills */}
+          {/* Dynamic Subcategory & Classification Switcher Pills */}
           <div className="pt-2 flex flex-wrap items-center gap-2">
-            {pillOptions.map((pill) => {
-              const isActive = category
-                ? (pill.slug === null && !subcategory) || pill.slug === subcategory
-                : (pill.slug === null && !category) || pill.slug === category;
+            {heroPillOptions.map((pill) => {
+              let isPillActive = false;
+              if ('classificationSlug' in pill) {
+                isPillActive =
+                  (pill.classificationSlug === null && !classification) ||
+                  pill.classificationSlug === classification;
+              } else if ('subcategorySlug' in pill) {
+                isPillActive =
+                  (pill.subcategorySlug === null && !subcategory) ||
+                  pill.subcategorySlug === subcategory;
+              } else if ('categorySlug' in pill) {
+                isPillActive =
+                  (pill.categorySlug === null && !category) ||
+                  pill.categorySlug === category;
+              }
+
+              const handlePillClick = () => {
+                if ('classificationSlug' in pill) {
+                  updateUrlParams({ classification: pill.classificationSlug });
+                } else if ('subcategorySlug' in pill) {
+                  updateUrlParams({ subcategory: pill.subcategorySlug, classification: null });
+                } else if ('categorySlug' in pill) {
+                  updateUrlParams({
+                    category: pill.categorySlug,
+                    subcategory: null,
+                    classification: null,
+                  });
+                }
+              };
+
               return (
                 <button
                   key={pill.name}
-                  onClick={() => handlePillClick(pill.slug)}
+                  onClick={handlePillClick}
                   className={`px-4 py-2 rounded-full text-xs transition cursor-pointer ${
-                    isActive
+                    isPillActive
                       ? 'bg-white text-[#13231D] font-bold shadow-sm'
                       : 'bg-white/10 hover:bg-white/20 text-white/90 border border-white/15 font-medium'
                   }`}
@@ -481,7 +485,7 @@ function CatalogContent() {
           <div className="pt-5 border-t border-white/10 grid grid-cols-2 sm:grid-cols-4 gap-3 text-[11px] text-[#CBD5C0]">
             <div className="flex items-center gap-2">
               <Truck size={14} className="text-[#A3B396] shrink-0" />
-              <span>Pan-India Free Delivery</span>
+              <span>Pan-India Free Shipping</span>
             </div>
             <div className="flex items-center gap-2">
               <ShieldCheck size={14} className="text-[#A3B396] shrink-0" />
@@ -504,23 +508,24 @@ function CatalogContent() {
         </div>
       </div>
 
-      {/* 3. Page Controls Bar */}
+      {/* 3. Controls Bar: Results Count, Sort, Search, Mobile Toggle */}
       <div className="border-b border-[#E8E5DE] pb-5 mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex items-center gap-2 text-xs text-[#73756F]">
           <span className="font-semibold text-[#13231D]">
             {totalCount} {totalCount === 1 ? 'Design' : 'Designs'}
           </span>
           <span>•</span>
-          <span>
-            {activeSubcategoryDoc
-              ? activeSubcategoryDoc.name
-              : activeCategoryDoc
-              ? activeCategoryDoc.name
+          <span className="font-medium text-gray-800">
+            {activeClassification
+              ? `${activeRootCategory?.name} → ${activeSubcategory?.name} → ${activeClassification.name}`
+              : activeSubcategory
+              ? `${activeRootCategory?.name} → ${activeSubcategory?.name}`
+              : activeRootCategory
+              ? activeRootCategory.name
               : 'All Seating'}
           </span>
         </div>
 
-        {/* Top Controls: Search, Filter Toggle, Sort Selector */}
         <div className="flex items-center gap-2.5 w-full md:w-auto">
           {/* Mobile Filter Toggle */}
           <button
@@ -539,7 +544,7 @@ function CatalogContent() {
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
               placeholder="Search chairs, sofas..."
-              className="w-full pl-8 pr-3 py-2 rounded-xl border border-[#E8E5DE] bg-white text-xs focus:outline-none focus:border-[#78836A]"
+              className="w-full pl-8 pr-3 py-2 rounded-xl border border-[#E8E2D9] bg-white text-xs focus:outline-none focus:border-[#78836A]"
             />
           </form>
 
@@ -548,7 +553,7 @@ function CatalogContent() {
             <select
               value={sort}
               onChange={(e) => updateUrlParams({ sort: e.target.value })}
-              className="px-3 py-2 rounded-xl border border-[#E8E5DE] bg-white text-xs text-[#242620] font-medium focus:outline-none focus:border-[#78836A] appearance-none pr-8 cursor-pointer shadow-2xs"
+              className="px-3 py-2 rounded-xl border border-[#E8E2D9] bg-white text-xs text-[#242620] font-medium focus:outline-none focus:border-[#78836A] appearance-none pr-8 cursor-pointer shadow-2xs"
             >
               <option value="newest">Sort: Newest</option>
               <option value="popular">Sort: Popular / Bestsellers</option>
@@ -564,7 +569,7 @@ function CatalogContent() {
         </div>
       </div>
 
-      {/* 3. Active Filter Badges */}
+      {/* 4. Active Filter Badges */}
       {hasActiveFilters && (
         <div className="flex flex-wrap items-center gap-2 pb-5 border-b border-[#E8E5DE] mb-8">
           <span className="text-[11px] font-semibold text-[#73756F] uppercase tracking-wider mr-1">
@@ -572,10 +577,12 @@ function CatalogContent() {
           </span>
 
           {category && (
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white border border-[#E8E5DE] text-xs text-[#242620] font-medium shadow-2xs">
-              <span>Category: {activeCategoryDoc?.name || formatSlug(category)}</span>
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white border border-[#E8E2D9] text-xs text-[#242620] font-medium shadow-2xs">
+              <span>Category: {activeRootCategory?.name || formatSlug(category)}</span>
               <button
-                onClick={() => updateUrlParams({ category: null, subcategory: null })}
+                onClick={() =>
+                  updateUrlParams({ category: null, subcategory: null, classification: null })
+                }
                 className="text-gray-400 hover:text-[#78836A] cursor-pointer"
                 aria-label="Remove category"
               >
@@ -585,10 +592,10 @@ function CatalogContent() {
           )}
 
           {subcategory && (
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white border border-[#E8E5DE] text-xs text-[#242620] font-medium shadow-2xs">
-              <span>Subcategory: {activeSubcategoryDoc?.name || formatSlug(subcategory)}</span>
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white border border-[#E8E2D9] text-xs text-[#242620] font-medium shadow-2xs">
+              <span>Family: {activeSubcategory?.name || formatSlug(subcategory)}</span>
               <button
-                onClick={() => updateUrlParams({ subcategory: null })}
+                onClick={() => updateUrlParams({ subcategory: null, classification: null })}
                 className="text-gray-400 hover:text-[#78836A] cursor-pointer"
                 aria-label="Remove subcategory"
               >
@@ -597,16 +604,37 @@ function CatalogContent() {
             </span>
           )}
 
-          {search && (
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white border border-[#E8E5DE] text-xs text-[#242620] font-medium shadow-2xs">
-              <span>&ldquo;{search}&rdquo;</span>
+          {classification && (
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-xs text-emerald-900 font-bold shadow-2xs">
+              <span>Class: {activeClassification?.name || formatSlug(classification)}</span>
               <button
-                onClick={() => {
-                  setSearchInput('');
-                  updateUrlParams({ q: null });
-                }}
+                onClick={() => updateUrlParams({ classification: null })}
+                className="text-emerald-600 hover:text-emerald-800 cursor-pointer"
+                aria-label="Remove classification"
+              >
+                <X size={13} />
+              </button>
+            </span>
+          )}
+
+          {material && (
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white border border-[#E8E2D9] text-xs text-[#242620] font-medium shadow-2xs">
+              <span>Material: {material}</span>
+              <button
+                onClick={() => updateUrlParams({ material: null })}
                 className="text-gray-400 hover:text-[#78836A] cursor-pointer"
-                aria-label="Remove search"
+              >
+                <X size={13} />
+              </button>
+            </span>
+          )}
+
+          {backrestHeight && (
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white border border-[#E8E2D9] text-xs text-[#242620] font-medium shadow-2xs">
+              <span>Backrest: {backrestHeight}</span>
+              <button
+                onClick={() => updateUrlParams({ backrestHeight: null })}
+                className="text-gray-400 hover:text-[#78836A] cursor-pointer"
               >
                 <X size={13} />
               </button>
@@ -614,7 +642,7 @@ function CatalogContent() {
           )}
 
           {(minPrice || maxPrice) && (
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white border border-[#E8E5DE] text-xs text-[#242620] font-medium shadow-2xs">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white border border-[#E8E2D9] text-xs text-[#242620] font-medium shadow-2xs">
               <span>
                 ₹{minPrice || 0} — {maxPrice ? `₹${maxPrice}` : 'Above'}
               </span>
@@ -625,7 +653,6 @@ function CatalogContent() {
                   updateUrlParams({ minPrice: null, maxPrice: null });
                 }}
                 className="text-gray-400 hover:text-[#78836A] cursor-pointer"
-                aria-label="Remove price filter"
               >
                 <X size={13} />
               </button>
@@ -633,12 +660,11 @@ function CatalogContent() {
           )}
 
           {inStockOnly && (
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white border border-[#E8E5DE] text-xs text-[#242620] font-medium shadow-2xs">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white border border-[#E8E2D9] text-xs text-[#242620] font-medium shadow-2xs">
               <span>In Stock Only</span>
               <button
                 onClick={() => updateUrlParams({ inStock: null })}
                 className="text-gray-400 hover:text-[#78836A] cursor-pointer"
-                aria-label="Remove in-stock filter"
               >
                 <X size={13} />
               </button>
@@ -655,14 +681,14 @@ function CatalogContent() {
         </div>
       )}
 
-      {/* 4. Main Body: Filter Sidebar + Products Grid */}
+      {/* 5. Main Body: Hierarchical Filter Sidebar + Products Grid */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-8 items-start">
         {/* Desktop Filter Sidebar */}
-        <aside className="hidden md:block bg-white p-6 rounded-2xl border border-[#E8E5DE] shadow-xs space-y-6 sticky top-28">
-          <div className="flex items-center justify-between pb-3 border-b border-[#E8E5DE]">
+        <aside className="hidden md:block bg-white p-6 rounded-2xl border border-[#E8E2D9] shadow-xs space-y-6 sticky top-28">
+          <div className="flex items-center justify-between pb-3 border-b border-[#E8E2D9]">
             <h3 className="text-xs font-bold uppercase tracking-wider text-[#13231D] flex items-center gap-2">
               <Filter size={14} className="text-[#78836A]" />
-              <span>Filter Catalogue</span>
+              <span>Hierarchical Taxonomy</span>
             </h3>
             {hasActiveFilters && (
               <button
@@ -674,14 +700,16 @@ function CatalogContent() {
             )}
           </div>
 
-          {/* Categories & Subcategories */}
+          {/* Hierarchical Categories & Classifications Accordion */}
           <div className="space-y-3">
             <h4 className="text-xs font-bold text-[#13231D] uppercase tracking-wide">
-              Categories
+              Product Categories
             </h4>
             <div className="space-y-1 text-xs">
               <button
-                onClick={() => updateUrlParams({ category: null, subcategory: null })}
+                onClick={() =>
+                  updateUrlParams({ category: null, subcategory: null, classification: null })
+                }
                 className={`w-full text-left py-1.5 px-2.5 rounded-lg transition cursor-pointer ${
                   !category
                     ? 'bg-[#13231D] text-white font-semibold'
@@ -691,43 +719,133 @@ function CatalogContent() {
                 All Seating
               </button>
 
-              {categories.map((cat) => (
-                <div key={cat._id} className="space-y-1">
-                  <button
-                    onClick={() => updateUrlParams({ category: cat.slug, subcategory: null })}
-                    className={`w-full text-left py-1.5 px-2.5 rounded-lg transition cursor-pointer ${
-                      category === cat.slug
-                        ? 'bg-[#13231D] text-white font-semibold'
-                        : 'text-[#242620] hover:bg-[#F7F5F0]'
-                    }`}
-                  >
-                    {cat.name}
-                  </button>
+              {categoryTree.map((cat) => {
+                const isCatSelected = category === cat.slug;
+                const subs = cat.children || cat.subcategories || [];
 
-                  {/* Subcategories (if parent category active) */}
-                  {category === cat.slug && cat.subcategories && cat.subcategories.length > 0 && (
-                    <div className="pl-3 space-y-0.5 border-l-2 border-[#78836A]/40 ml-3 py-1">
-                      {cat.subcategories.map((sub) => (
-                        <button
-                          key={sub._id}
-                          onClick={() => updateUrlParams({ subcategory: sub.slug })}
-                          className={`w-full text-left py-1 px-2 rounded-md text-[11px] transition cursor-pointer ${
-                            subcategory === sub.slug
-                              ? 'text-[#78836A] font-bold bg-[#F7F5F0]'
-                              : 'text-[#73756F] hover:text-[#242620]'
-                          }`}
-                        >
-                          &bull; {sub.name}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
+                return (
+                  <div key={cat._id} className="space-y-1">
+                    <button
+                      onClick={() =>
+                        updateUrlParams({
+                          category: cat.slug,
+                          subcategory: null,
+                          classification: null,
+                        })
+                      }
+                      className={`w-full text-left py-1.5 px-2.5 rounded-lg transition cursor-pointer font-medium ${
+                        isCatSelected && !subcategory
+                          ? 'bg-[#13231D] text-white font-semibold'
+                          : isCatSelected
+                          ? 'text-[#78836A] font-bold bg-[#FAF8F5]'
+                          : 'text-[#242620] hover:bg-[#F7F5F0]'
+                      }`}
+                    >
+                      {cat.name}
+                    </button>
+
+                    {/* Level 2 Subcategories if parent selected */}
+                    {isCatSelected && subs.length > 0 && (
+                      <div className="pl-3 space-y-1 border-l-2 border-[#78836A]/40 ml-3 py-1">
+                        {subs.map((sub) => {
+                          const isSubSelected = subcategory === sub.slug;
+                          const classifications = sub.children || sub.subcategories || [];
+
+                          return (
+                            <div key={sub._id} className="space-y-0.5">
+                              <button
+                                onClick={() =>
+                                  updateUrlParams({
+                                    subcategory: sub.slug,
+                                    classification: null,
+                                  })
+                                }
+                                className={`w-full text-left py-1 px-2 rounded-md text-[11px] transition cursor-pointer ${
+                                  isSubSelected && !classification
+                                    ? 'bg-[#78836A] text-white font-bold'
+                                    : isSubSelected
+                                    ? 'text-[#78836A] font-bold bg-[#F7F5F0]'
+                                    : 'text-[#73756F] hover:text-[#242620]'
+                                }`}
+                              >
+                                &bull; {sub.name}
+                              </button>
+
+                              {/* Level 3 Specific Classifications if subcategory selected */}
+                              {isSubSelected && classifications.length > 0 && (
+                                <div className="pl-3 space-y-0.5 border-l border-gray-300 ml-2 py-0.5">
+                                  {classifications.map((item) => (
+                                    <button
+                                      key={item._id}
+                                      onClick={() =>
+                                        updateUrlParams({ classification: item.slug })
+                                      }
+                                      className={`w-full text-left py-0.5 px-2 rounded text-[10px] transition cursor-pointer ${
+                                        classification === item.slug
+                                          ? 'text-[#667151] font-bold bg-[#FAF8F5]'
+                                          : 'text-gray-500 hover:text-gray-800'
+                                      }`}
+                                    >
+                                      &minus; {item.name}
+                                    </button>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Furniture Attribute Filters */}
+          <div className="pt-4 border-t border-[#E8E5DE] space-y-3">
+            <h4 className="text-xs font-bold text-[#13231D] uppercase tracking-wide">
+              Material Filter
+            </h4>
+            <div className="space-y-1 text-xs">
+              {MATERIAL_FILTER_OPTIONS.map((opt) => (
+                <button
+                  key={opt.label}
+                  onClick={() => updateUrlParams({ material: opt.value || null })}
+                  className={`w-full text-left py-1 px-2 rounded-md transition cursor-pointer text-xs ${
+                    material === opt.value
+                      ? 'text-[#78836A] font-bold bg-[#F7F5F0]'
+                      : 'text-[#73756F] hover:text-[#242620]'
+                  }`}
+                >
+                  {opt.label}
+                </button>
               ))}
             </div>
           </div>
 
-          {/* Price Range Filter Presets & Inputs */}
+          <div className="pt-4 border-t border-[#E8E5DE] space-y-3">
+            <h4 className="text-xs font-bold text-[#13231D] uppercase tracking-wide">
+              Backrest Height
+            </h4>
+            <div className="space-y-1 text-xs">
+              {BACKREST_FILTER_OPTIONS.map((opt) => (
+                <button
+                  key={opt.label}
+                  onClick={() => updateUrlParams({ backrestHeight: opt.value || null })}
+                  className={`w-full text-left py-1 px-2 rounded-md transition cursor-pointer text-xs ${
+                    backrestHeight === opt.value
+                      ? 'text-[#78836A] font-bold bg-[#F7F5F0]'
+                      : 'text-[#73756F] hover:text-[#242620]'
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Price Range Filter */}
           <div className="pt-4 border-t border-[#E8E5DE] space-y-3">
             <h4 className="text-xs font-bold text-[#13231D] uppercase tracking-wide">
               Price Range
@@ -763,7 +881,7 @@ function CatalogContent() {
                   placeholder="Min ₹"
                   value={customMin}
                   onChange={(e) => setCustomMin(e.target.value)}
-                  className="w-1/2 px-2.5 py-1.5 rounded-lg border border-[#E8E5DE] text-xs bg-[#F7F5F0] focus:outline-none focus:border-[#78836A]"
+                  className="w-1/2 px-2.5 py-1.5 rounded-lg border border-[#E8E2D9] text-xs bg-[#F7F5F0] focus:outline-none focus:border-[#78836A]"
                 />
                 <span className="text-gray-400 text-xs">-</span>
                 <input
@@ -771,7 +889,7 @@ function CatalogContent() {
                   placeholder="Max ₹"
                   value={customMax}
                   onChange={(e) => setCustomMax(e.target.value)}
-                  className="w-1/2 px-2.5 py-1.5 rounded-lg border border-[#E8E5DE] text-xs bg-[#F7F5F0] focus:outline-none focus:border-[#78836A]"
+                  className="w-1/2 px-2.5 py-1.5 rounded-lg border border-[#E8E2D9] text-xs bg-[#F7F5F0] focus:outline-none focus:border-[#78836A]"
                 />
               </div>
               <button
@@ -800,7 +918,7 @@ function CatalogContent() {
           </div>
         </aside>
 
-        {/* Product Grid Area (3-4 Columns Desktop, 2 Columns Tablet/Mobile) */}
+        {/* Product Grid Area */}
         <div className="md:col-span-3 space-y-8">
           {loading ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-4 sm:gap-6">
@@ -820,11 +938,11 @@ function CatalogContent() {
               </div>
               <div className="max-w-md mx-auto space-y-2">
                 <h3 className="font-serif-luxury text-xl font-bold text-[#13231D]">
-                  No matching seating found
+                  No matching seating designs found
                 </h3>
                 <p className="text-xs text-[#73756F] leading-relaxed">
-                  We couldn&apos;t find chairs matching the selected filters. Try removing subcategory,
-                  query, or price boundaries to view the rest of our collection.
+                  We couldn&apos;t find furniture matching your selected category classification or filters.
+                  Try clearing subcategory or attribute boundaries to view related designs.
                 </p>
               </div>
 
@@ -837,7 +955,7 @@ function CatalogContent() {
                 </button>
                 <Link
                   href="/products?category=office-chairs"
-                  className="px-5 py-2.5 rounded-xl border border-[#E8E5DE] bg-white text-xs font-bold text-[#242620] tracking-wider uppercase hover:border-[#78836A] hover:text-[#78836A] transition cursor-pointer"
+                  className="px-5 py-2.5 rounded-xl border border-[#E8E2D9] bg-white text-xs font-bold text-[#242620] tracking-wider uppercase hover:border-[#78836A] hover:text-[#78836A] transition cursor-pointer"
                 >
                   Explore Office Chairs
                 </Link>
@@ -857,7 +975,7 @@ function CatalogContent() {
               <button
                 onClick={() => updateUrlParams({ page: String(Math.max(1, pageParam - 1)) })}
                 disabled={pageParam <= 1}
-                className="p-2.5 rounded-xl border border-[#E8E5DE] bg-white text-gray-700 disabled:opacity-30 hover:bg-[#F7F5F0] cursor-pointer shadow-2xs"
+                className="p-2.5 rounded-xl border border-[#E8E2D9] bg-white text-gray-700 disabled:opacity-30 hover:bg-[#F7F5F0] cursor-pointer shadow-2xs"
                 aria-label="Previous page"
               >
                 <ChevronLeft size={16} />
@@ -868,7 +986,7 @@ function CatalogContent() {
               <button
                 onClick={() => updateUrlParams({ page: String(Math.min(totalPages, pageParam + 1)) })}
                 disabled={pageParam >= totalPages}
-                className="p-2.5 rounded-xl border border-[#E8E5DE] bg-white text-gray-700 disabled:opacity-30 hover:bg-[#F7F5F0] cursor-pointer shadow-2xs"
+                className="p-2.5 rounded-xl border border-[#E8E2D9] bg-white text-gray-700 disabled:opacity-30 hover:bg-[#F7F5F0] cursor-pointer shadow-2xs"
                 aria-label="Next page"
               >
                 <ChevronRight size={16} />
@@ -878,7 +996,7 @@ function CatalogContent() {
         </div>
       </div>
 
-      {/* 5. Mobile Filter Drawer */}
+      {/* 6. Mobile Filter Drawer */}
       {mobileFilterOpen && (
         <div className="fixed inset-0 z-50 md:hidden flex justify-end">
           <div
@@ -886,8 +1004,8 @@ function CatalogContent() {
             onClick={() => setMobileFilterOpen(false)}
           />
           <div className="relative z-10 w-full max-w-xs bg-white h-full p-6 overflow-y-auto space-y-6 shadow-2xl">
-            <div className="flex items-center justify-between pb-3 border-b border-[#E8E5DE]">
-              <h3 className="text-sm font-bold text-[#13231D]">Filters</h3>
+            <div className="flex items-center justify-between pb-3 border-b border-[#E8E2D9]">
+              <h3 className="text-sm font-bold text-[#13231D]">Filter Taxonomy</h3>
               <button
                 onClick={() => setMobileFilterOpen(false)}
                 className="text-gray-500 hover:text-gray-800 cursor-pointer"
@@ -901,7 +1019,7 @@ function CatalogContent() {
               <div className="space-y-1 text-xs">
                 <button
                   onClick={() => {
-                    updateUrlParams({ category: null, subcategory: null });
+                    updateUrlParams({ category: null, subcategory: null, classification: null });
                     setMobileFilterOpen(false);
                   }}
                   className={`block w-full text-left py-2 px-2.5 rounded-lg ${
@@ -910,11 +1028,11 @@ function CatalogContent() {
                 >
                   All Seating
                 </button>
-                {categories.map((cat) => (
+                {categoryTree.map((cat) => (
                   <button
                     key={cat._id}
                     onClick={() => {
-                      updateUrlParams({ category: cat.slug, subcategory: null });
+                      updateUrlParams({ category: cat.slug, subcategory: null, classification: null });
                       setMobileFilterOpen(false);
                     }}
                     className={`block w-full text-left py-2 px-2.5 rounded-lg ${
@@ -927,7 +1045,7 @@ function CatalogContent() {
               </div>
             </div>
 
-            <div className="pt-4 border-t border-[#E8E5DE] space-y-2">
+            <div className="pt-4 border-t border-[#E8E2D9] space-y-2">
               <h4 className="text-xs font-bold text-[#13231D] uppercase">Stock Status</h4>
               <label className="flex items-center gap-2 text-xs text-[#242620]">
                 <input
@@ -946,7 +1064,7 @@ function CatalogContent() {
                   clearAllFilters();
                   setMobileFilterOpen(false);
                 }}
-                className="flex-1 py-2.5 rounded-xl border border-[#E8E5DE] text-xs font-semibold text-gray-700 cursor-pointer"
+                className="flex-1 py-2.5 rounded-xl border border-[#E8E2D9] text-xs font-semibold text-gray-700 cursor-pointer"
               >
                 Reset
               </button>

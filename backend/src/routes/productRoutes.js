@@ -21,6 +21,7 @@ router.get('/featured', getFeaturedAndBestsellers);
 
 // Admin-only endpoints
 router.get('/admin/all', authenticate, authorize('admin'), getAllProductsAdmin);
+router.get('/admin/item/:id', authenticate, authorize('admin'), getProductBySlug);
 router.post('/', authenticate, authorize('admin'), validate(createProductSchema), createProduct);
 router.put('/:id', authenticate, authorize('admin'), updateProduct);
 router.delete('/:id', authenticate, authorize('admin'), deleteProduct);

@@ -32,7 +32,8 @@ export default async function autoSeed() {
       ],
     });
 
-    // 2. Categories
+    // 2. Categories Hierarchy (3 Levels)
+    // Level 1: Root Categories
     const officeChairs = await Category.create({
       name: 'Office Chairs',
       slug: 'office-chairs',
@@ -41,6 +42,8 @@ export default async function autoSeed() {
         url: 'https://images.unsplash.com/photo-1580481077195-c9a75d5a7d65?q=80&w=800&auto=format&fit=crop',
       },
       sortOrder: 1,
+      isActive: true,
+      showInNavbar: true,
     });
 
     const sofas = await Category.create({
@@ -51,6 +54,8 @@ export default async function autoSeed() {
         url: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?q=80&w=800&auto=format&fit=crop',
       },
       sortOrder: 2,
+      isActive: true,
+      showInNavbar: true,
     });
 
     const softSeating = await Category.create({
@@ -61,23 +66,29 @@ export default async function autoSeed() {
         url: 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?q=80&w=800&auto=format&fit=crop',
       },
       sortOrder: 3,
+      isActive: true,
+      showInNavbar: true,
     });
 
-    // Subcategories
-    const meshChairs = await Category.create({
-      name: 'Mesh Chairs',
-      slug: 'mesh-chairs',
-      parent: officeChairs._id,
-      description: 'Breathable high-tensile mesh seating for all-day thermal comfort.',
-      sortOrder: 1,
-    });
-
+    // Level 2: Under Office Chairs
     const leatheretteChairs = await Category.create({
       name: 'Leatherette Chairs',
       slug: 'leatherette-chairs',
       parent: officeChairs._id,
       description: 'Supple artisanal leatherette chairs with opulent executive styling.',
+      sortOrder: 1,
+      isActive: true,
+      showInNavbar: true,
+    });
+
+    const meshChairs = await Category.create({
+      name: 'Mesh Chairs',
+      slug: 'mesh-chairs',
+      parent: officeChairs._id,
+      description: 'Breathable high-tensile mesh seating for all-day thermal comfort.',
       sortOrder: 2,
+      isActive: true,
+      showInNavbar: true,
     });
 
     const workstationChairs = await Category.create({
@@ -86,13 +97,90 @@ export default async function autoSeed() {
       parent: officeChairs._id,
       description: 'Dense molded cushion task seating built for endurance.',
       sortOrder: 3,
+      isActive: true,
+      showInNavbar: true,
     });
 
+    // Level 3: Under Leatherette Chairs
+    const leatheretteHighBack = await Category.create({
+      name: 'Leatherette High Back',
+      slug: 'leatherette-high-back',
+      parent: leatheretteChairs._id,
+      description: 'Full-support high-back leatherette chairs for commanding executive comfort.',
+      sortOrder: 1,
+      isActive: true,
+      showInNavbar: true,
+    });
+
+    const leatheretteMediumBack = await Category.create({
+      name: 'Leatherette Medium Back',
+      slug: 'leatherette-medium-back',
+      parent: leatheretteChairs._id,
+      description: 'Ergonomic mid-back leatherette chairs for agile executive workspaces.',
+      sortOrder: 2,
+      isActive: true,
+      showInNavbar: true,
+    });
+
+    const leatheretteCushion = await Category.create({
+      name: 'Leatherette Cushion',
+      slug: 'leatherette-cushion',
+      parent: leatheretteChairs._id,
+      description: 'Deep padded cushion leatherette chairs engineered for prolonged meetings.',
+      sortOrder: 3,
+      isActive: true,
+      showInNavbar: true,
+    });
+
+    const leatheretteWorkstation = await Category.create({
+      name: 'Leatherette Workstation Chairs',
+      slug: 'leatherette-workstation-chairs',
+      parent: leatheretteChairs._id,
+      description: 'Tailored leatherette task chairs for executive team pods.',
+      sortOrder: 4,
+      isActive: true,
+      showInNavbar: true,
+    });
+
+    // Level 3: Under Mesh Chairs
+    const meshHighBack = await Category.create({
+      name: 'Mesh High Back',
+      slug: 'mesh-high-back',
+      parent: meshChairs._id,
+      description: 'Dynamic elastomeric high-back mesh seating with cervical headrest support.',
+      sortOrder: 1,
+      isActive: true,
+      showInNavbar: true,
+    });
+
+    const meshMediumBack = await Category.create({
+      name: 'Mesh Medium Back',
+      slug: 'mesh-medium-back',
+      parent: meshChairs._id,
+      description: 'Low-profile breathable mid-back mesh chairs for collaborative workspaces.',
+      sortOrder: 2,
+      isActive: true,
+      showInNavbar: true,
+    });
+
+    const meshStaff = await Category.create({
+      name: 'Mesh Staff Chairs',
+      slug: 'mesh-staff-chairs',
+      parent: meshChairs._id,
+      description: 'Resilient and agile mesh task chairs built for active teams.',
+      sortOrder: 3,
+      isActive: true,
+      showInNavbar: true,
+    });
+
+    // Level 2: Under Sofas
     const threeSeater = await Category.create({
       name: '3-Seater Sofa',
       slug: '3-seater-sofa',
       parent: sofas._id,
       sortOrder: 1,
+      isActive: true,
+      showInNavbar: true,
     });
 
     const twoSeater = await Category.create({
@@ -100,13 +188,18 @@ export default async function autoSeed() {
       slug: '2-seater-sofa',
       parent: sofas._id,
       sortOrder: 2,
+      isActive: true,
+      showInNavbar: true,
     });
 
+    // Level 2: Under Soft Seating
     const loungeChairs = await Category.create({
       name: 'Lounge Chairs',
       slug: 'lounge-chairs',
       parent: softSeating._id,
       sortOrder: 1,
+      isActive: true,
+      showInNavbar: true,
     });
 
     const diningChairs = await Category.create({
@@ -114,6 +207,8 @@ export default async function autoSeed() {
       slug: 'dining-chairs',
       parent: softSeating._id,
       sortOrder: 2,
+      isActive: true,
+      showInNavbar: true,
     });
 
     const cafeChairs = await Category.create({
@@ -121,6 +216,8 @@ export default async function autoSeed() {
       slug: 'cafe-chairs',
       parent: softSeating._id,
       sortOrder: 3,
+      isActive: true,
+      showInNavbar: true,
     });
 
     // 3. Products
@@ -131,6 +228,15 @@ export default async function autoSeed() {
         sku: 'EC-OCH-001',
         category: officeChairs._id,
         subcategory: meshChairs._id,
+        classification: meshHighBack._id,
+        attributes: {
+          material: 'Mesh',
+          backrestHeight: 'High Back',
+          colour: 'Black',
+          armrests: '3D PU Adjustable',
+          mechanism: 'Synchro-Tilt Multi-Angle Lock',
+          weightCapacity: '135 kg',
+        },
         description:
           'The Oscar Series represents the zenith of active ergonomics. Engineered with German-calibrated dynamic lumbar support and breathable Italian elastomeric mesh, it adapts fluidly to your posture throughout intensive focus sessions. Features heavy-duty nylon base and multi-position locking.',
         shortDescription: 'Active lumbar ergonomics with breathable mesh and 3D armrests.',
@@ -170,6 +276,15 @@ export default async function autoSeed() {
         sku: 'EC-OCH-002',
         category: officeChairs._id,
         subcategory: leatheretteChairs._id,
+        classification: leatheretteHighBack._id,
+        attributes: {
+          material: 'Leatherette',
+          backrestHeight: 'High Back',
+          colour: 'Dark Brown',
+          armrests: 'Aluminium with Leatherette Cushion',
+          mechanism: 'Knee-Tilt Multi-Position Lock',
+          weightCapacity: '150 kg',
+        },
         description:
           'Command your room with the Stanley Executive Chair. Hand-tailored in high-grade supple leatherette over double-density molded foam cushioning, paired with a solid die-cast polished aluminium base and aluminium handles for timeless distinction and supreme relaxation.',
         shortDescription: 'Opulent leatherette comfort with polished aluminium chassis.',
@@ -208,6 +323,15 @@ export default async function autoSeed() {
         sku: 'EC-OCH-003',
         category: officeChairs._id,
         subcategory: workstationChairs._id,
+        classification: null,
+        attributes: {
+          material: 'Fabric Cushion',
+          backrestHeight: 'Medium Back',
+          colour: 'Grey',
+          armrests: 'Fixed Ergonomic PP',
+          mechanism: 'Center-Tilt Upright Lock',
+          weightCapacity: '120 kg',
+        },
         description:
           'Engineered for long team shifts and workstation clusters. The Aero chair delivers a waterfall seat edge design to reduce under-thigh pressure, paired with reinforced nylon lumbar framing and low-maintenance fabric seating.',
         shortDescription: 'Comfortable daily workstation chair with waterfall seat front.',
@@ -239,6 +363,13 @@ export default async function autoSeed() {
         sku: 'EC-SOF-001',
         category: sofas._id,
         subcategory: threeSeater._id,
+        classification: null,
+        attributes: {
+          material: 'Velvet',
+          colour: 'Royal Emerald',
+          upholstery: 'Stain-resistant high-pile velvet',
+          dimensions: '88" W x 36" D x 31" H',
+        },
         description:
           'Imbued with heritage grandeur, the Chesterfield Royale 3-Seater is upholstered in jewel-toned stain-resistant velvet with deep diamond button tufting. Supported by a kiln-dried hardwood frame and solid walnut-finished legs, creating an exquisite centerpiece for executive suites.',
         shortDescription: 'Handcrafted diamond button tufted velvet executive sofa.',
@@ -265,136 +396,13 @@ export default async function autoSeed() {
         status: 'published',
         warranty: '5 Years Structural Warranty',
       },
-      {
-        name: 'Nordic Haven 2-Seater Minimalist Sofa',
-        slug: 'nordic-haven-2-seater-sofa',
-        sku: 'EC-SOF-002',
-        category: sofas._id,
-        subcategory: twoSeater._id,
-        description:
-          'A quiet balance of Scandinavian simplicity and welcoming warmth. Tailored in an organic textured linen weave over an internal coil spring suspension. Ideal for waiting lounges, private cabins, and modern living rooms.',
-        shortDescription: 'Scandinavian clean lines with textured linen weave.',
-        specifications: [
-          { key: 'Frame', value: 'FSC-certified solid oak and engineered frame' },
-          { key: 'Upholstery', value: 'Durable breathable textured linen-cotton blend' },
-          { key: 'Legs', value: 'Tapered natural oak wood' },
-          { key: 'Dimensions', value: '64" W x 34" D x 32" H' },
-        ],
-        mrp: 38000,
-        sellingPrice: 28999,
-        images: [
-          {
-            url: 'https://images.unsplash.com/photo-1493663284031-b7e3aefcae8e?q=80&w=1000&auto=format&fit=crop',
-            altText: 'Nordic Haven 2-Seater Sofa',
-            isPrimary: true,
-            sortOrder: 0,
-          },
-        ],
-        stock: 10,
-        isBestseller: false,
-        isFeatured: true,
-        status: 'published',
-        warranty: '3 Years Structural Warranty',
-      },
-      {
-        name: 'Velvet Wingback Accent Lounge Chair',
-        slug: 'velvet-wingback-accent-lounge-chair',
-        sku: 'EC-SFT-001',
-        category: softSeating._id,
-        subcategory: loungeChairs._id,
-        description:
-          'Enveloping silhouette designed for reading nooks and boutique breakout zones. Features curved ergonomic wings and electroplated brushed brass steel legs.',
-        shortDescription: 'Curved sculptural lounge chair with brushed brass steel legs.',
-        specifications: [
-          { key: 'Upholstery', value: 'Opulent woven chenille velvet' },
-          { key: 'Frame', value: 'Reinforced curved steel and molded foam' },
-          { key: 'Legs', value: 'Brushed brass electroplated stainless steel' },
-          { key: 'Seat Height', value: '18 inches' },
-        ],
-        mrp: 24999,
-        sellingPrice: 18999,
-        images: [
-          {
-            url: 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?q=80&w=1000&auto=format&fit=crop',
-            altText: 'Velvet Wingback Accent Lounge Chair',
-            isPrimary: true,
-            sortOrder: 0,
-          },
-        ],
-        stock: 12,
-        isBestseller: true,
-        isFeatured: true,
-        status: 'published',
-        warranty: '2 Years Comprehensive Warranty',
-      },
-      {
-        name: 'Sienna Mid-Century Dining Chairs (Set of 2)',
-        slug: 'sienna-mid-century-dining-chairs',
-        sku: 'EC-SFT-002',
-        category: softSeating._id,
-        subcategory: diningChairs._id,
-        description:
-          'Pairing organic curved bentwood backrests with padded vegan leather seats. Ergonomically inclined for conversational dining and executive conference tables.',
-        shortDescription: 'Bentwood craft with padded seats, sold in matching pairs.',
-        specifications: [
-          { key: 'Backrest', value: 'Curved natural walnut veneer bentwood' },
-          { key: 'Seat', value: 'High-density foam padded faux leather' },
-          { key: 'Legs', value: 'Solid European beechwood' },
-          { key: 'Package', value: 'Set of 2 Chairs' },
-        ],
-        mrp: 19999,
-        sellingPrice: 14499,
-        images: [
-          {
-            url: 'https://images.unsplash.com/photo-1503602642458-232111445657?q=80&w=1000&auto=format&fit=crop',
-            altText: 'Sienna Mid-Century Dining Chairs',
-            isPrimary: true,
-            sortOrder: 0,
-          },
-        ],
-        stock: 18,
-        isBestseller: false,
-        isFeatured: true,
-        status: 'published',
-        warranty: '2 Years Manufacturer Warranty',
-      },
-      {
-        name: 'Aria Contemporary Cafe Chair',
-        slug: 'aria-contemporary-cafe-chair',
-        sku: 'EC-SFT-003',
-        category: softSeating._id,
-        subcategory: cafeChairs._id,
-        description:
-          'Minimalist cafe and bistro chair crafted from recyclable UV-stabilized polypropylene with architectural steel wireframe legs. Stackable up to 4 chairs.',
-        shortDescription: 'UV-stabilized modern cafe seating with wireframe base.',
-        specifications: [
-          { key: 'Material', value: 'UV-stabilized matte finish polypropylene shell' },
-          { key: 'Base', value: 'Powder-coated welded carbon steel rod structure' },
-          { key: 'Stackable', value: 'Yes, up to 4 chairs' },
-        ],
-        mrp: 10999,
-        sellingPrice: 7999,
-        images: [
-          {
-            url: 'https://images.unsplash.com/photo-1519947486513-ce62b9f0b160?q=80&w=1000&auto=format&fit=crop',
-            altText: 'Aria Cafe Chair',
-            isPrimary: true,
-            sortOrder: 0,
-          },
-        ],
-        stock: 35,
-        isBestseller: false,
-        isFeatured: false,
-        status: 'published',
-        warranty: '1 Year Warranty',
-      },
     ];
 
     for (const p of products) {
       await Product.create(p);
     }
 
-    console.log('[AutoSeed] Successfully populated database with default catalog and admin!');
+    console.log('[AutoSeed] Successfully populated database with default 3-level catalog and admin!');
   } catch (err) {
     console.error('[AutoSeed] Error during auto-seed:', err);
   }
