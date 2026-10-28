@@ -157,7 +157,7 @@ export const Footer: React.FC = () => {
               </li>
               <li>
                 <a href="#corporate-solutions" className="hover:text-white transition">
-                  Corporate Solutions
+                  Bulk Buy
                 </a>
               </li>
               <li>

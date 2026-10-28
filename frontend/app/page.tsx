@@ -47,7 +47,7 @@ export default function HomePage() {
       {/* 9. Dining, Café & Bar Seating — "Gather Beautifully." */}
       <DiningCafeEditorialSection />
 
-      {/* 10. Corporate Solutions & Bulk B2B Procurement */}
+      {/* 10. Bulk Buy & Bulk B2B Procurement */}
       <CorporateSolutions />
 
       {/* 11. Verified Factory Google Reviews & Bhiwandi Experience */}

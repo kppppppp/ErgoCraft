@@ -442,7 +442,7 @@ export const Header: React.FC = () => {
               </Link>
             </div>
 
-            {/* Corporate Solutions */}
+            {/* Bulk Buy */}
             <div
               className="relative h-full flex items-center px-3 xl:px-4 cursor-pointer"
               onClick={handleCorporateClick}
@@ -452,7 +452,7 @@ export const Header: React.FC = () => {
                 className="flex items-center gap-1.5 py-2 text-[#78836A] hover:text-[#59644E] font-semibold transition-colors cursor-pointer"
               >
                 <Briefcase size={14} />
-                <span>Corporate Solutions</span>
+                <span>Bulk Buy</span>
               </button>
             </div>
           </nav>
@@ -901,7 +901,7 @@ export const Header: React.FC = () => {
                 All Seating
               </Link>
 
-              {/* Corporate Solutions */}
+              {/* Bulk Buy */}
               <button
                 onClick={() => {
                   setMobileMenuOpen(false);
@@ -911,7 +911,7 @@ export const Header: React.FC = () => {
               >
                 <span className="flex items-center gap-2">
                   <Briefcase size={16} />
-                  <span>Corporate Solutions</span>
+                  <span>Bulk Buy</span>
                 </span>
                 <ChevronRight size={16} />
               </button>

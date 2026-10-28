@@ -32,7 +32,7 @@ const QUESTIONS = [
   {
     question: 'Do you offer bulk corporate and commercial discounts?',
     answer:
-      'Yes. For office setups, co-working spaces, and orders of 10+ units, we offer special factory bulk rates, formal GST invoices, and dedicated project management. Contact us via our Corporate Solutions form or WhatsApp.',
+      'Yes. For office setups, co-working spaces, and orders of 10+ units, we offer special factory bulk rates, formal GST invoices, and dedicated project management. Contact us via our Bulk Buy form or WhatsApp.',
   },
 ];
 
