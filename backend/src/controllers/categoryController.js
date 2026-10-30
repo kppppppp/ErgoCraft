@@ -9,9 +9,17 @@ import { asyncHandler } from '../utils/asyncHandler.js';
  */
 function buildTree(categories, parentId = null) {
   const result = [];
+  const targetParentId = parentId ? parentId.toString() : null;
+
   for (const cat of categories) {
-    const catParentId = cat.parent ? cat.parent.toString() : null;
-    const targetParentId = parentId ? parentId.toString() : null;
+    let catParentId = null;
+    if (cat.parent) {
+      if (typeof cat.parent === 'object' && cat.parent !== null) {
+        catParentId = cat.parent._id ? cat.parent._id.toString() : cat.parent.toString();
+      } else {
+        catParentId = cat.parent.toString();
+      }
+    }
 
     if (catParentId === targetParentId) {
       const children = buildTree(categories, cat._id);
@@ -194,7 +202,26 @@ export const getAllCategoriesAdmin = asyncHandler(async (req, res) => {
     return catObj;
   });
 
-  res.status(200).json(new ApiResponse(200, { categories: enriched }, 'All categories retrieved for admin'));
+  // Build a tree and flatten hierarchically (DFS order) so children always appear directly under their parents
+  const tree = buildTree(enriched, null);
+  const hierarchicalFlat = [];
+  const flattenDfs = (nodes) => {
+    for (const node of nodes) {
+      hierarchicalFlat.push(node);
+      if (node.children && node.children.length > 0) {
+        flattenDfs(node.children);
+      }
+    }
+  };
+  flattenDfs(tree);
+
+  res.status(200).json(
+    new ApiResponse(
+      200,
+      { categories: hierarchicalFlat, tree },
+      'All categories retrieved for admin'
+    )
+  );
 });
 
 /**

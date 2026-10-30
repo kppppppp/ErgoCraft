@@ -41,37 +41,34 @@ export const getProducts = asyncHandler(async (req, res) => {
     limit = 12,
   } = req.query;
 
-  const query = { status: 'published' };
+  const andConditions = [{ status: 'published' }];
 
   // Text search
   if (q && q.trim()) {
     const searchRegex = new RegExp(q.trim(), 'i');
-    query.$or = [{ name: searchRegex }, { description: searchRegex }, { sku: searchRegex }];
+    andConditions.push({
+      $or: [{ name: searchRegex }, { description: searchRegex }, { sku: searchRegex }],
+    });
   }
 
   // Hierarchy Category filter (includes all descendant categories)
-  if (category) {
-    let catDoc = null;
-    if (category.match(/^[0-9a-fA-F]{24}$/)) {
-      catDoc = await Category.findById(category);
+  if (classification) {
+    let classDoc = null;
+    if (classification.match(/^[0-9a-fA-F]{24}$/)) {
+      classDoc = await Category.findById(classification);
     } else {
-      catDoc = await Category.findOne({ slug: category });
+      classDoc = await Category.findOne({ slug: classification });
     }
 
-    if (catDoc) {
-      const descendantIds = await getAllCategoryDescendantIds(catDoc._id);
-      const allMatchingIds = [catDoc._id, ...descendantIds];
-      query.$or = [
-        { categories: { $in: allMatchingIds } },
-        { category: { $in: allMatchingIds } },
-        { subcategory: { $in: allMatchingIds } },
-        { classification: { $in: allMatchingIds } },
-      ];
+    if (classDoc) {
+      andConditions.push({
+        $or: [
+          { categories: classDoc._id },
+          { classification: classDoc._id },
+        ],
+      });
     }
-  }
-
-  // Subcategory filter (Level 2 or specific)
-  if (subcategory) {
+  } else if (subcategory) {
     let subDoc = null;
     if (subcategory.match(/^[0-9a-fA-F]{24}$/)) {
       subDoc = await Category.findById(subcategory);
@@ -82,75 +79,102 @@ export const getProducts = asyncHandler(async (req, res) => {
     if (subDoc) {
       const subDescendantIds = await getAllCategoryDescendantIds(subDoc._id);
       const allSubMatchingIds = [subDoc._id, ...subDescendantIds];
-      query.$or = [
-        { categories: { $in: allSubMatchingIds } },
-        { category: { $in: allSubMatchingIds } },
-        { subcategory: { $in: allSubMatchingIds } },
-        { classification: { $in: allSubMatchingIds } },
-      ];
+      andConditions.push({
+        $or: [
+          { categories: { $in: allSubMatchingIds } },
+          { category: { $in: allSubMatchingIds } },
+          { subcategory: { $in: allSubMatchingIds } },
+          { classification: { $in: allSubMatchingIds } },
+        ],
+      });
     }
-  }
-
-  // Specific Classification filter (Level 3)
-  if (classification) {
-    let classDoc = null;
-    if (classification.match(/^[0-9a-fA-F]{24}$/)) {
-      classDoc = await Category.findById(classification);
+  } else if (category) {
+    let catDoc = null;
+    if (category.match(/^[0-9a-fA-F]{24}$/)) {
+      catDoc = await Category.findById(category);
     } else {
-      classDoc = await Category.findOne({ slug: classification });
+      catDoc = await Category.findOne({ slug: category });
     }
 
-    if (classDoc) {
-      query.$or = [
-        { categories: classDoc._id },
-        { classification: classDoc._id },
-      ];
+    if (catDoc) {
+      const descendantIds = await getAllCategoryDescendantIds(catDoc._id);
+      const allMatchingIds = [catDoc._id, ...descendantIds];
+      andConditions.push({
+        $or: [
+          { categories: { $in: allMatchingIds } },
+          { category: { $in: allMatchingIds } },
+          { subcategory: { $in: allMatchingIds } },
+          { classification: { $in: allMatchingIds } },
+        ],
+      });
     }
   }
 
   // Attribute filters
   if (material && material.trim()) {
-    query['attributes.material'] = new RegExp(material.trim(), 'i');
+    const matRegex = new RegExp(material.trim(), 'i');
+    andConditions.push({
+      $or: [
+        { 'attributes.material': matRegex },
+        { name: matRegex },
+        { description: matRegex },
+      ],
+    });
   }
 
   if (backrestHeight && backrestHeight.trim()) {
-    query['attributes.backrestHeight'] = new RegExp(backrestHeight.trim(), 'i');
+    const bhRegex = new RegExp(backrestHeight.trim(), 'i');
+    const matchingCats = await Category.find({ name: bhRegex }).select('_id');
+    const matchingCatIds = matchingCats.map((c) => c._id);
+    andConditions.push({
+      $or: [
+        { 'attributes.backrestHeight': bhRegex },
+        { classification: { $in: matchingCatIds } },
+        { categories: { $in: matchingCatIds } },
+        { name: bhRegex },
+      ],
+    });
   }
 
   if (colour && colour.trim()) {
-    query['attributes.colour'] = new RegExp(colour.trim(), 'i');
+    andConditions.push({ 'attributes.colour': new RegExp(colour.trim(), 'i') });
   }
 
   // Price range
   if (minPrice !== undefined || maxPrice !== undefined) {
-    query.sellingPrice = {};
-    if (minPrice !== undefined && !isNaN(Number(minPrice))) {
-      query.sellingPrice.$gte = Number(minPrice);
+    const priceFilter = {};
+    if (minPrice !== undefined && minPrice !== '' && !isNaN(Number(minPrice))) {
+      priceFilter.$gte = Number(minPrice);
     }
-    if (maxPrice !== undefined && !isNaN(Number(maxPrice))) {
-      query.sellingPrice.$lte = Number(maxPrice);
+    if (maxPrice !== undefined && maxPrice !== '' && !isNaN(Number(maxPrice))) {
+      priceFilter.$lte = Number(maxPrice);
+    }
+    if (Object.keys(priceFilter).length > 0) {
+      andConditions.push({ sellingPrice: priceFilter });
     }
   }
 
   // Bestseller / Featured flags
   if (isBestseller === 'true' || isBestseller === true) {
-    query.isBestseller = true;
+    andConditions.push({ isBestseller: true });
   }
   if (isFeatured === 'true' || isFeatured === true) {
-    query.isFeatured = true;
+    andConditions.push({ isFeatured: true });
   }
 
   // In-stock filter
   if (inStock === 'true' || inStock === true) {
-    query.stock = { $gt: 0 };
+    andConditions.push({ stock: { $gt: 0 } });
   }
 
-  // Sorting
-  let sortOption = { createdAt: -1 };
-  if (sort === 'price_asc') sortOption = { sellingPrice: 1 };
-  if (sort === 'price_desc') sortOption = { sellingPrice: -1 };
-  if (sort === 'discount') sortOption = { discountPercentage: -1 };
-  if (sort === 'popular') sortOption = { isBestseller: -1, isFeatured: -1, createdAt: -1 };
+  const query = andConditions.length > 0 ? { $and: andConditions } : {};
+
+  // Sorting with deterministic tie-breaker
+  let sortOption = { createdAt: -1, _id: -1 };
+  if (sort === 'price_asc') sortOption = { sellingPrice: 1, _id: -1 };
+  if (sort === 'price_desc') sortOption = { sellingPrice: -1, _id: -1 };
+  if (sort === 'discount') sortOption = { discountPercentage: -1, _id: -1 };
+  if (sort === 'popular') sortOption = { isBestseller: -1, isFeatured: -1, createdAt: -1, _id: -1 };
 
   const pageNum = Math.max(1, parseInt(page, 10));
   const limitNum = Math.min(50, Math.max(1, parseInt(limit, 10)));
@@ -247,39 +271,88 @@ export const getProductBySlug = asyncHandler(async (req, res) => {
 });
 
 export const getAllProductsAdmin = asyncHandler(async (req, res) => {
-  const { q, category, status, page = 1, limit = 20 } = req.query;
+  const { q, category, subcategory, classification, status, page = 1, limit = 20 } = req.query;
 
-  const query = {};
+  const andConditions = [];
+
   if (q && q.trim()) {
     const searchRegex = new RegExp(q.trim(), 'i');
-    query.$or = [{ name: searchRegex }, { sku: searchRegex }];
+    andConditions.push({
+      $or: [{ name: searchRegex }, { sku: searchRegex }, { description: searchRegex }],
+    });
   }
 
-  if (category) {
-    if (category.match(/^[0-9a-fA-F]{24}$/)) {
-      const descendantIds = await getAllCategoryDescendantIds(category);
-      query.categories = { $in: [category, ...descendantIds] };
+  if (classification) {
+    let classDoc = null;
+    if (classification.match(/^[0-9a-fA-F]{24}$/)) {
+      classDoc = await Category.findById(classification);
     } else {
-      const catDoc = await Category.findOne({ slug: category });
-      if (catDoc) {
-        const descendantIds = await getAllCategoryDescendantIds(catDoc._id);
-        query.categories = { $in: [catDoc._id, ...descendantIds] };
-      }
+      classDoc = await Category.findOne({ slug: classification });
+    }
+    if (classDoc) {
+      andConditions.push({
+        $or: [
+          { categories: classDoc._id },
+          { classification: classDoc._id },
+        ],
+      });
+    }
+  } else if (subcategory) {
+    let subDoc = null;
+    if (subcategory.match(/^[0-9a-fA-F]{24}$/)) {
+      subDoc = await Category.findById(subcategory);
+    } else {
+      subDoc = await Category.findOne({ slug: subcategory });
+    }
+    if (subDoc) {
+      const descendantIds = await getAllCategoryDescendantIds(subDoc._id);
+      const allSubMatchingIds = [subDoc._id, ...descendantIds];
+      andConditions.push({
+        $or: [
+          { categories: { $in: allSubMatchingIds } },
+          { category: { $in: allSubMatchingIds } },
+          { subcategory: { $in: allSubMatchingIds } },
+          { classification: { $in: allSubMatchingIds } },
+        ],
+      });
+    }
+  } else if (category) {
+    let catDoc = null;
+    if (category.match(/^[0-9a-fA-F]{24}$/)) {
+      catDoc = await Category.findById(category);
+    } else {
+      catDoc = await Category.findOne({ slug: category });
+    }
+    if (catDoc) {
+      const descendantIds = await getAllCategoryDescendantIds(catDoc._id);
+      const allMatchingIds = [catDoc._id, ...descendantIds];
+      andConditions.push({
+        $or: [
+          { categories: { $in: allMatchingIds } },
+          { category: { $in: allMatchingIds } },
+          { subcategory: { $in: allMatchingIds } },
+          { classification: { $in: allMatchingIds } },
+        ],
+      });
     }
   }
 
-  if (status) query.status = status;
+  if (status && status !== 'all') {
+    andConditions.push({ status });
+  }
 
-  const pageNum = Math.max(1, parseInt(page, 10));
-  const limitNum = Math.min(100, Math.max(1, parseInt(limit, 10)));
+  const query = andConditions.length > 0 ? { $and: andConditions } : {};
+
+  const pageNum = Math.max(1, parseInt(page, 10) || 1);
+  const limitNum = Math.min(100, Math.max(1, parseInt(limit, 10) || 20));
   const skip = (pageNum - 1) * limitNum;
 
   const [products, totalCount] = await Promise.all([
     Product.find(query)
-      .populate('category', 'name slug')
-      .populate('subcategory', 'name slug')
-      .populate('classification', 'name slug')
-      .sort({ createdAt: -1 })
+      .populate('category', 'name slug parent')
+      .populate('subcategory', 'name slug parent')
+      .populate('classification', 'name slug parent')
+      .sort({ createdAt: -1, _id: -1 })
       .skip(skip)
       .limit(limitNum),
     Product.countDocuments(query),

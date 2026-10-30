@@ -824,26 +824,29 @@ function CatalogContent() {
             </div>
           </div>
 
-          <div className="pt-4 border-t border-[#E8E5DE] space-y-3">
-            <h4 className="text-xs font-bold text-[#13231D] uppercase tracking-wide">
-              Backrest Height
-            </h4>
-            <div className="space-y-1 text-xs">
-              {BACKREST_FILTER_OPTIONS.map((opt) => (
-                <button
-                  key={opt.label}
-                  onClick={() => updateUrlParams({ backrestHeight: opt.value || null })}
-                  className={`w-full text-left py-1 px-2 rounded-md transition cursor-pointer text-xs ${
-                    backrestHeight === opt.value
-                      ? 'text-[#78836A] font-bold bg-[#F7F5F0]'
-                      : 'text-[#73756F] hover:text-[#242620]'
-                  }`}
-                >
-                  {opt.label}
-                </button>
-              ))}
+          {/* Backrest Height Filter: shown for chairs & general seating, hidden for Sofas */}
+          {category !== 'sofas' && (
+            <div className="pt-4 border-t border-[#E8E5DE] space-y-3">
+              <h4 className="text-xs font-bold text-[#13231D] uppercase tracking-wide">
+                Backrest Height
+              </h4>
+              <div className="space-y-1 text-xs">
+                {BACKREST_FILTER_OPTIONS.map((opt) => (
+                  <button
+                    key={opt.label}
+                    onClick={() => updateUrlParams({ backrestHeight: opt.value || null })}
+                    className={`w-full text-left py-1 px-2 rounded-md transition cursor-pointer text-xs ${
+                      backrestHeight === opt.value
+                        ? 'text-[#78836A] font-bold bg-[#F7F5F0]'
+                        : 'text-[#73756F] hover:text-[#242620]'
+                    }`}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Price Range Filter */}
           <div className="pt-4 border-t border-[#E8E5DE] space-y-3">

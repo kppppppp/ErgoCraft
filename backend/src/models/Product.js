@@ -179,6 +179,18 @@ productSchema.pre('save', function (next) {
   }
   this.categories = uniqueIds;
 
+  // Auto-sync backrestHeight from name or attributes if not set
+  if (this.attributes && !this.attributes.backrestHeight) {
+    const nameLower = (this.name || '').toLowerCase();
+    if (nameLower.includes('high back') || nameLower.includes(' hb ') || nameLower.endsWith(' hb')) {
+      this.attributes.backrestHeight = 'High Back';
+    } else if (nameLower.includes('medium back') || nameLower.includes('mid back') || nameLower.includes(' mb ') || nameLower.endsWith(' mb')) {
+      this.attributes.backrestHeight = 'Medium Back';
+    } else if (nameLower.includes('low back') || nameLower.includes(' lb ') || nameLower.endsWith(' lb')) {
+      this.attributes.backrestHeight = 'Low Back';
+    }
+  }
+
   next();
 });
 

@@ -6,7 +6,6 @@ import Link from 'next/link';
 import { fetchApi } from '../lib/api';
 import {
   Upload,
-  Plus,
   Trash2,
   AlertCircle,
   ArrowLeft,
@@ -14,6 +13,7 @@ import {
   Star,
   Loader2,
   CheckCircle2,
+  Sliders,
 } from 'lucide-react';
 
 interface CategoryNode {
@@ -41,6 +41,17 @@ export interface ProductFormData {
   description?: string;
   shortDescription?: string;
   images?: Array<{ url: string; altText?: string; isPrimary: boolean; publicId?: string }>;
+  attributes?: {
+    material?: string;
+    backrestHeight?: string;
+    colour?: string;
+    armrests?: string;
+    mechanism?: string;
+    weightCapacity?: string;
+    upholstery?: string;
+    dimensions?: string;
+  };
+  specifications?: Array<{ key: string; value: string }>;
 }
 
 interface ProductFormProps {
@@ -55,9 +66,12 @@ export const ProductForm: React.FC<ProductFormProps> = ({ initialData, isEdit = 
   const [categories, setCategories] = useState<CategoryNode[]>([]);
   const [loadingCategories, setLoadingCategories] = useState(true);
 
-  // Form states: 1. Product Details
+  // Form states: 1. Basic Details
   const [name, setName] = useState('');
+  const [sku, setSku] = useState('');
   const [description, setDescription] = useState('');
+  const [shortDescription, setShortDescription] = useState('');
+  const [status, setStatus] = useState('published');
 
   // Form states: 2. Category Cascade
   const [categoryId, setCategoryId] = useState('');
@@ -69,8 +83,18 @@ export const ProductForm: React.FC<ProductFormProps> = ({ initialData, isEdit = 
   const [sellingPrice, setSellingPrice] = useState<number | ''>('');
   const [stock, setStock] = useState<number | ''>(10);
   const [isBestseller, setIsBestseller] = useState(false);
+  const [isFeatured, setIsFeatured] = useState(false);
 
-  // Form states: 4. Product Images
+  // Form states: 4. Product Attributes & Dimensions
+  const [material, setMaterial] = useState('');
+  const [backrestHeight, setBackrestHeight] = useState('');
+  const [colour, setColour] = useState('');
+  const [dimensions, setDimensions] = useState('');
+  const [armrests, setArmrests] = useState('');
+  const [mechanism, setMechanism] = useState('');
+  const [weightCapacity, setWeightCapacity] = useState('');
+
+  // Form states: 5. Product Images
   const [images, setImages] = useState<
     Array<{ url: string; altText?: string; isPrimary: boolean; publicId?: string }>
   >([]);
@@ -84,25 +108,34 @@ export const ProductForm: React.FC<ProductFormProps> = ({ initialData, isEdit = 
 
   // Load categories dynamically from backend
   useEffect(() => {
+    let isMounted = true;
     const loadCategories = async () => {
       setLoadingCategories(true);
       try {
         const res = await fetchApi<{ categories: CategoryNode[] }>('/categories/admin/all');
-        setCategories(res.data.categories || []);
+        if (isMounted) {
+          setCategories(res.data?.categories || []);
+        }
       } catch (err: unknown) {
         console.error('Failed to load categories', err);
       } finally {
-        setLoadingCategories(false);
+        if (isMounted) setLoadingCategories(false);
       }
     };
     loadCategories();
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   // Pre-populate fields in Edit mode
   useEffect(() => {
     if (initialData) {
       if (initialData.name) setName(initialData.name);
+      if (initialData.sku) setSku(initialData.sku);
       if (initialData.description) setDescription(initialData.description);
+      if (initialData.shortDescription) setShortDescription(initialData.shortDescription);
+      if (initialData.status) setStatus(initialData.status);
 
       const cId =
         typeof initialData.category === 'object' && initialData.category
@@ -125,15 +158,27 @@ export const ProductForm: React.FC<ProductFormProps> = ({ initialData, isEdit = 
       if (initialData.sellingPrice !== undefined) setSellingPrice(initialData.sellingPrice);
       if (initialData.stock !== undefined) setStock(initialData.stock);
       if (initialData.isBestseller !== undefined) setIsBestseller(Boolean(initialData.isBestseller));
+      if (initialData.isFeatured !== undefined) setIsFeatured(Boolean(initialData.isFeatured));
+
       if (initialData.images && Array.isArray(initialData.images)) {
         setImages(initialData.images);
+      }
+
+      if (initialData.attributes) {
+        if (initialData.attributes.material) setMaterial(initialData.attributes.material);
+        if (initialData.attributes.backrestHeight) setBackrestHeight(initialData.attributes.backrestHeight);
+        if (initialData.attributes.colour) setColour(initialData.attributes.colour);
+        if (initialData.attributes.dimensions) setDimensions(initialData.attributes.dimensions);
+        if (initialData.attributes.armrests) setArmrests(initialData.attributes.armrests);
+        if (initialData.attributes.mechanism) setMechanism(initialData.attributes.mechanism);
+        if (initialData.attributes.weightCapacity) setWeightCapacity(initialData.attributes.weightCapacity);
       }
     }
   }, [initialData]);
 
   // Derived: Level 1 Main Categories (no parent)
   const mainCategories = useMemo(() => {
-    return categories.filter((c) => !c.parent);
+    return categories.filter((c) => !c.parent || (typeof c.parent === 'object' && !(c.parent as any)?._id));
   }, [categories]);
 
   // Derived: Level 2 Subcategories of selected Main Category
@@ -164,6 +209,18 @@ export const ProductForm: React.FC<ProductFormProps> = ({ initialData, isEdit = 
   const handleSubcategoryChange = (newSubId: string) => {
     setSubcategoryId(newSubId);
     setClassificationId('');
+  };
+
+  const handleClassificationChange = (newClassId: string) => {
+    setClassificationId(newClassId);
+    const classDoc = categories.find((c) => String(c._id) === String(newClassId));
+    if (classDoc) {
+      if (classDoc.name.includes('High Back') && !backrestHeight) {
+        setBackrestHeight('High Back');
+      } else if (classDoc.name.includes('Medium Back') && !backrestHeight) {
+        setBackrestHeight('Medium Back');
+      }
+    }
   };
 
   // Selected Category Breadcrumb
@@ -282,6 +339,8 @@ export const ProductForm: React.FC<ProductFormProps> = ({ initialData, isEdit = 
   // Form Submit Handler
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (submitting) return;
+
     setError('');
     setSuccessMessage('');
 
@@ -322,7 +381,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({ initialData, isEdit = 
 
     setSubmitting(true);
 
-    // Auto-generate slug and SKU if not present
+    // Auto-generate slug and SKU if not provided
     const cleanSlug =
       initialData?.slug ||
       name
@@ -332,25 +391,45 @@ export const ProductForm: React.FC<ProductFormProps> = ({ initialData, isEdit = 
         .replace(/\s+/g, '-');
 
     const cleanSku =
+      sku.trim() ||
       initialData?.sku ||
       `EC-${name.replace(/[^A-Za-z]/g, '').slice(0, 4).toUpperCase() || 'PRD'}-${Math.floor(
         100 + Math.random() * 900
       )}`;
 
+    // Auto-derive backrest height if still empty
+    let finalBackrest = backrestHeight.trim();
+    if (!finalBackrest) {
+      const nLower = name.toLowerCase();
+      if (nLower.includes('high back')) finalBackrest = 'High Back';
+      else if (nLower.includes('medium back') || nLower.includes('mid back')) finalBackrest = 'Medium Back';
+    }
+
     const payload = {
       name: name.trim(),
       slug: cleanSlug,
-      sku: cleanSku,
+      sku: cleanSku.toUpperCase(),
       category: categoryId,
       subcategory: subcategoryId || null,
       classification: classificationId || null,
       description: description.trim(),
+      shortDescription: shortDescription.trim(),
       mrp: Number(mrp),
       sellingPrice: Number(sellingPrice),
       stock: stock === '' ? 10 : Number(stock),
       isBestseller,
+      isFeatured,
+      status,
       images,
-      status: initialData?.status || 'published',
+      attributes: {
+        material: material.trim(),
+        backrestHeight: finalBackrest,
+        colour: colour.trim(),
+        dimensions: dimensions.trim(),
+        armrests: armrests.trim(),
+        mechanism: mechanism.trim(),
+        weightCapacity: weightCapacity.trim(),
+      },
     };
 
     try {
@@ -394,7 +473,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({ initialData, isEdit = 
               {isEdit ? 'Edit Product' : 'Add New Product'}
             </h1>
             <p className="text-xs text-[#78716C] mt-0.5">
-              Fill in the simple fields below to manage your product catalogue.
+              Fill in the verified fields below to publish or update your product catalogue.
             </p>
           </div>
         </div>
@@ -415,29 +494,44 @@ export const ProductForm: React.FC<ProductFormProps> = ({ initialData, isEdit = 
         </div>
       )}
 
-      {/* SECTION 1: Product Details */}
+      {/* SECTION 1: Product Identification */}
       <div className="bg-white p-6 rounded-xl border border-[#E8E2D9] shadow-xs space-y-4">
         <h2 className="text-sm font-bold uppercase tracking-wider text-[#1E1B18] border-b border-gray-100 pb-2">
-          1. Product Details
+          1. Product Identification
         </h2>
 
-        <div>
-          <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1.5">
-            Product Name <span className="text-rose-500">*</span>
-          </label>
-          <input
-            type="text"
-            required
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="e.g. Ergocraft Apollo High Back Executive Chair"
-            className="w-full px-3.5 py-2.5 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-[#667151]/30 focus:border-[#667151]"
-          />
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="sm:col-span-2">
+            <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1.5">
+              Product Name <span className="text-rose-500">*</span>
+            </label>
+            <input
+              type="text"
+              required
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="e.g. Ergocraft Apollo High Back Executive Chair"
+              className="w-full px-3.5 py-2.5 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-[#667151]/30 focus:border-[#667151]"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1.5">
+              SKU Code
+            </label>
+            <input
+              type="text"
+              value={sku}
+              onChange={(e) => setSku(e.target.value.toUpperCase())}
+              placeholder="e.g. EC-APOL-001 (auto if empty)"
+              className="w-full px-3.5 py-2.5 rounded-lg border border-gray-300 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-[#667151]/30 focus:border-[#667151]"
+            />
+          </div>
         </div>
 
         <div>
           <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1.5">
-            Description <span className="text-rose-500">*</span>
+            Full Description <span className="text-rose-500">*</span>
           </label>
           <textarea
             required
@@ -448,18 +542,31 @@ export const ProductForm: React.FC<ProductFormProps> = ({ initialData, isEdit = 
             className="w-full px-3.5 py-2.5 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-[#667151]/30 focus:border-[#667151]"
           />
         </div>
+
+        <div>
+          <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1.5">
+            Short Summary (Optional)
+          </label>
+          <input
+            type="text"
+            value={shortDescription}
+            onChange={(e) => setShortDescription(e.target.value)}
+            placeholder="1-line summary for product cards..."
+            className="w-full px-3.5 py-2.5 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-[#667151]/30 focus:border-[#667151]"
+          />
+        </div>
       </div>
 
-      {/* SECTION 2: Category (Cascading Dropdowns) */}
+      {/* SECTION 2: Category Taxonomy (Cascading Dropdowns) */}
       <div className="bg-white p-6 rounded-xl border border-[#E8E2D9] shadow-xs space-y-4">
         <h2 className="text-sm font-bold uppercase tracking-wider text-[#1E1B18] border-b border-gray-100 pb-2">
-          2. Category
+          2. Category Taxonomy
         </h2>
 
         {loadingCategories ? (
           <div className="flex items-center gap-2 text-xs text-gray-500 py-3">
             <Loader2 size={16} className="animate-spin text-[#667151]" />
-            <span>Loading categories...</span>
+            <span>Loading category taxonomy...</span>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -483,66 +590,175 @@ export const ProductForm: React.FC<ProductFormProps> = ({ initialData, isEdit = 
               </select>
             </div>
 
-            {/* Level 2: Subcategory (Only shown if Main Category has children) */}
-            {categoryId && subcategories.length > 0 && (
-              <div>
-                <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1.5">
-                  Subcategory
-                </label>
-                <select
-                  value={subcategoryId}
-                  onChange={(e) => handleSubcategoryChange(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-lg border border-gray-300 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#667151]/30 focus:border-[#667151]"
-                >
-                  <option value="">Select Subcategory (Optional)</option>
-                  {subcategories.map((c) => (
-                    <option key={c._id} value={c._id}>
-                      {c.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            )}
+            {/* Level 2: Subcategory */}
+            <div>
+              <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1.5">
+                Subcategory
+              </label>
+              <select
+                value={subcategoryId}
+                onChange={(e) => handleSubcategoryChange(e.target.value)}
+                disabled={!categoryId || subcategories.length === 0}
+                className={`w-full px-3.5 py-2.5 rounded-lg border text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#667151]/30 focus:border-[#667151] ${
+                  !categoryId || subcategories.length === 0
+                    ? 'border-gray-200 text-gray-400 bg-gray-50 cursor-not-allowed'
+                    : 'border-gray-300 text-gray-800'
+                }`}
+              >
+                <option value="">
+                  {!categoryId
+                    ? 'Select main category first'
+                    : subcategories.length === 0
+                    ? 'No subcategories'
+                    : 'Select Subcategory (Optional)'}
+                </option>
+                {subcategories.map((c) => (
+                  <option key={c._id} value={c._id}>
+                    {c.name}
+                  </option>
+                ))}
+              </select>
+            </div>
 
-            {/* Level 3: Specific Category (Only shown if Subcategory has children) */}
-            {subcategoryId && specificCategories.length > 0 && (
-              <div>
-                <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1.5">
-                  Specific Classification
-                </label>
-                <select
-                  value={classificationId}
-                  onChange={(e) => setClassificationId(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-lg border border-gray-300 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#667151]/30 focus:border-[#667151]"
-                >
-                  <option value="">Select Specific Classification (Optional)</option>
-                  {specificCategories.map((c) => (
-                    <option key={c._id} value={c._id}>
-                      {c.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            )}
+            {/* Level 3: Specific Category */}
+            <div>
+              <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1.5">
+                Specific Classification
+              </label>
+              <select
+                value={classificationId}
+                onChange={(e) => handleClassificationChange(e.target.value)}
+                disabled={!subcategoryId || specificCategories.length === 0}
+                className={`w-full px-3.5 py-2.5 rounded-lg border text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#667151]/30 focus:border-[#667151] ${
+                  !subcategoryId || specificCategories.length === 0
+                    ? 'border-gray-200 text-gray-400 bg-gray-50 cursor-not-allowed'
+                    : 'border-gray-300 text-gray-800'
+                }`}
+              >
+                <option value="">
+                  {!subcategoryId
+                    ? 'Select subcategory first'
+                    : specificCategories.length === 0
+                    ? 'No specific classifications'
+                    : 'Select Classification (Optional)'}
+                </option>
+                {specificCategories.map((c) => (
+                  <option key={c._id} value={c._id}>
+                    {c.name}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
         )}
 
-        {/* Display selected path clearly */}
+        {/* Selected Breadcrumb Path */}
         {selectedPathString && (
           <div className="pt-2 text-xs flex items-center gap-1.5 text-gray-600 bg-gray-50 px-3 py-2 rounded-lg border border-gray-200">
-            <span className="font-semibold text-gray-800">Assigned Path:</span>
+            <span className="font-semibold text-gray-800">Assigned Taxonomy Path:</span>
             <span className="font-medium text-[#667151]">{selectedPathString}</span>
           </div>
         )}
       </div>
 
-      {/* SECTION 3: Pricing & Inventory */}
+      {/* SECTION 3: Attributes & Dimensions */}
       <div className="bg-white p-6 rounded-xl border border-[#E8E2D9] shadow-xs space-y-4">
-        <h2 className="text-sm font-bold uppercase tracking-wider text-[#1E1B18] border-b border-gray-100 pb-2">
-          3. Pricing & Inventory
+        <h2 className="text-sm font-bold uppercase tracking-wider text-[#1E1B18] border-b border-gray-100 pb-2 flex items-center gap-2">
+          <Sliders size={16} className="text-[#667151]" />
+          <span>3. Dimensions & Attributes</span>
         </h2>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+          <div>
+            <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1.5">
+              Backrest Height
+            </label>
+            <select
+              value={backrestHeight}
+              onChange={(e) => setBackrestHeight(e.target.value)}
+              className="w-full px-3.5 py-2.5 rounded-lg border border-gray-300 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#667151]/30 focus:border-[#667151]"
+            >
+              <option value="">None / Not Applicable</option>
+              <option value="High Back">High Back</option>
+              <option value="Medium Back">Medium Back</option>
+              <option value="Low Back">Low Back</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1.5">
+              Material
+            </label>
+            <input
+              type="text"
+              value={material}
+              onChange={(e) => setMaterial(e.target.value)}
+              placeholder="e.g. Leatherette, Mesh, Fabric"
+              className="w-full px-3.5 py-2.5 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-[#667151]/30 focus:border-[#667151]"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1.5">
+              Colour
+            </label>
+            <input
+              type="text"
+              value={colour}
+              onChange={(e) => setColour(e.target.value)}
+              placeholder="e.g. Black, Beige Mushroom, Grey"
+              className="w-full px-3.5 py-2.5 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-[#667151]/30 focus:border-[#667151]"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1.5">
+              Overall Dimensions
+            </label>
+            <input
+              type="text"
+              value={dimensions}
+              onChange={(e) => setDimensions(e.target.value)}
+              placeholder="e.g. 88 W x 36 D x 31 H in"
+              className="w-full px-3.5 py-2.5 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-[#667151]/30 focus:border-[#667151]"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1.5">
+              Mechanism
+            </label>
+            <input
+              type="text"
+              value={mechanism}
+              onChange={(e) => setMechanism(e.target.value)}
+              placeholder="e.g. Synchro-Tilt Multi-Lock"
+              className="w-full px-3.5 py-2.5 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-[#667151]/30 focus:border-[#667151]"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1.5">
+              Weight Capacity
+            </label>
+            <input
+              type="text"
+              value={weightCapacity}
+              onChange={(e) => setWeightCapacity(e.target.value)}
+              placeholder="e.g. 135 kg"
+              className="w-full px-3.5 py-2.5 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-[#667151]/30 focus:border-[#667151]"
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* SECTION 4: Pricing, Inventory & Status */}
+      <div className="bg-white p-6 rounded-xl border border-[#E8E2D9] shadow-xs space-y-4">
+        <h2 className="text-sm font-bold uppercase tracking-wider text-[#1E1B18] border-b border-gray-100 pb-2">
+          4. Pricing, Inventory & Status
+        </h2>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
           <div>
             <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1.5">
               Actual Price (MRP ₹) <span className="text-rose-500">*</span>
@@ -561,7 +777,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({ initialData, isEdit = 
           <div>
             <div className="flex items-center justify-between mb-1.5">
               <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                Discounted Price (₹) <span className="text-rose-500">*</span>
+                Selling Price (₹) <span className="text-rose-500">*</span>
               </label>
               {discountPercent > 0 && (
                 <span className="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.2 rounded border border-emerald-200">
@@ -596,10 +812,25 @@ export const ProductForm: React.FC<ProductFormProps> = ({ initialData, isEdit = 
               className="w-full px-3.5 py-2.5 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-[#667151]/30 focus:border-[#667151]"
             />
           </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1.5">
+              Publishing Status
+            </label>
+            <select
+              value={status}
+              onChange={(e) => setStatus(e.target.value)}
+              className="w-full px-3.5 py-2.5 rounded-lg border border-gray-300 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#667151]/30 focus:border-[#667151]"
+            >
+              <option value="published">Published</option>
+              <option value="draft">Draft</option>
+              <option value="archived">Archived</option>
+            </select>
+          </div>
         </div>
 
-        <div className="pt-2 border-t border-gray-100 flex items-center">
-          <label className="relative flex items-center gap-2.5 cursor-pointer">
+        <div className="pt-2 border-t border-gray-100 flex flex-wrap items-center gap-6">
+          <label className="relative flex items-center gap-2 cursor-pointer">
             <input
               type="checkbox"
               checked={isBestseller}
@@ -607,16 +838,28 @@ export const ProductForm: React.FC<ProductFormProps> = ({ initialData, isEdit = 
               className="w-4 h-4 rounded text-[#667151] border-gray-300 focus:ring-[#667151]"
             />
             <span className="text-xs font-semibold text-gray-800">
-              Mark this product as a Bestseller
+              Mark as Bestseller
+            </span>
+          </label>
+
+          <label className="relative flex items-center gap-2 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={isFeatured}
+              onChange={(e) => setIsFeatured(e.target.checked)}
+              className="w-4 h-4 rounded text-[#667151] border-gray-300 focus:ring-[#667151]"
+            />
+            <span className="text-xs font-semibold text-gray-800">
+              Mark as Featured Collection
             </span>
           </label>
         </div>
       </div>
 
-      {/* SECTION 4: Product Images */}
+      {/* SECTION 5: Product Images */}
       <div className="bg-white p-6 rounded-xl border border-[#E8E2D9] shadow-xs space-y-4">
         <h2 className="text-sm font-bold uppercase tracking-wider text-[#1E1B18] border-b border-gray-100 pb-2">
-          4. Product Images
+          5. Product Images
         </h2>
 
         {/* Upload Controls */}
