@@ -9,11 +9,15 @@ import {
   getDashboardStatsAdmin,
   sendAdminTestEmail,
   retryOrderEmailAdmin,
+  calculateOrderPricing,
 } from '../controllers/orderController.js';
 import { authenticate, optionalAuth } from '../middleware/auth.js';
 import { authorize } from '../middleware/rbac.js';
 
 const router = Router();
+
+// Pricing calculation route (accessible for cart & checkout calculations)
+router.post('/calculate-pricing', calculateOrderPricing);
 
 // Storefront checkout routes (strictly protected by authentication)
 router.post('/create', authenticate, createPendingOrder);

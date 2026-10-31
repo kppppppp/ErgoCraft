@@ -3,6 +3,9 @@ import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
 
 const addressSchema = new mongoose.Schema({
+  fullName: { type: String, trim: true },
+  phone: { type: String, trim: true },
+  houseNumber: { type: String, trim: true },
   street: { type: String, required: true },
   landmark: { type: String },
   city: { type: String, required: true },

@@ -4,7 +4,19 @@ import React from 'react';
 import Link from 'next/link';
 import { useCart } from '../lib/cart';
 import { useAuth } from '../lib/auth';
-import { X, Trash2, Plus, Minus, ShoppingBag, ArrowRight, Truck, Lock } from 'lucide-react';
+import {
+  X,
+  Trash2,
+  Plus,
+  Minus,
+  ShoppingBag,
+  ArrowRight,
+  Truck,
+  Lock,
+  Sparkles,
+  Tag,
+  CheckCircle2,
+} from 'lucide-react';
 
 export const CartDrawer: React.FC = () => {
   const { user } = useAuth();
@@ -12,8 +24,15 @@ export const CartDrawer: React.FC = () => {
     cart,
     cartCount,
     cartSubtotal,
+    chairSubtotal,
+    nonChairSubtotal,
+    chairDiscountPercentage,
+    chairDiscountAmount,
+    finalChairAmount,
     shippingCharges,
     cartTotal,
+    bannerMessage,
+    progressMessage,
     isOpen,
     closeCart,
     updateQuantity,
@@ -48,14 +67,32 @@ export const CartDrawer: React.FC = () => {
         </div>
 
         {/* Free Shipping Announcement */}
-        <div className="bg-[#F7F5F0] p-3.5 border-b border-[#E8E5DE] text-xs">
+        <div className="bg-[#F7F5F0] p-3 border-b border-[#E8E5DE] text-xs">
           <div className="flex items-center gap-2 text-[#242620] font-medium">
-            <Truck size={15} className="text-[#78836A]" />
-            <span className="text-emerald-800 font-semibold">
-              Complimentary Pan-India Free Delivery Unlocked on All Orders!
+            <Truck size={14} className="text-[#78836A] shrink-0" />
+            <span className="text-emerald-800 font-semibold text-[11px]">
+              Complimentary Pan-India Free Delivery on All Orders
             </span>
           </div>
         </div>
+
+        {/* Automatic Chair Discount Indicators */}
+        {cart.length > 0 && (bannerMessage || progressMessage) && (
+          <div className="border-b border-[#E8E5DE]">
+            {bannerMessage && (
+              <div className="bg-emerald-50/90 border-b border-emerald-100 p-3 px-4 flex items-center gap-2 text-xs text-emerald-900 font-semibold">
+                <Sparkles size={15} className="text-emerald-600 shrink-0" />
+                <span>{bannerMessage}</span>
+              </div>
+            )}
+            {progressMessage && (
+              <div className="bg-[#FAF8F5] p-2.5 px-4 flex items-center gap-2 text-[11px] text-[#73756F]">
+                <Tag size={13} className="text-[#78836A] shrink-0" />
+                <span>{progressMessage}</span>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Cart Items List */}
         <div className="flex-1 overflow-y-auto p-5 divide-y divide-[#E8E5DE]">
@@ -88,10 +125,19 @@ export const CartDrawer: React.FC = () => {
 
                 <div className="flex-1 flex flex-col justify-between">
                   <div>
-                    <h3 className="text-xs sm:text-sm font-semibold text-[#242620] line-clamp-1 leading-snug">
-                      {item.name}
-                    </h3>
-                    <p className="font-mono text-[10px] text-[#73756F]">{item.sku}</p>
+                    <div className="flex items-center gap-1.5">
+                      <h3 className="text-xs sm:text-sm font-semibold text-[#242620] line-clamp-1 leading-snug">
+                        {item.name}
+                      </h3>
+                    </div>
+                    <div className="flex items-center gap-2 mt-0.5">
+                      <p className="font-mono text-[10px] text-[#73756F]">{item.sku}</p>
+                      {item.isChair && (
+                        <span className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.2 bg-[#FAF8F5] text-[#78836A] rounded border border-[#E8E5DE]">
+                          Chair Offer Eligible
+                        </span>
+                      )}
+                    </div>
                     <div className="mt-1 font-bold text-sm text-[#13231D]">
                       ₹{item.sellingPrice.toLocaleString('en-IN')}
                       {item.mrp > item.sellingPrice && (
@@ -138,26 +184,57 @@ export const CartDrawer: React.FC = () => {
           )}
         </div>
 
-        {/* Drawer Footer with Totals */}
+        {/* Drawer Footer with Transparent Breakdown */}
         {cart.length > 0 && (
           <div className="p-5 border-t border-[#E8E5DE] bg-[#F7F5F0] space-y-3">
             <div className="space-y-1.5 text-xs text-[#73756F]">
-              <div className="flex justify-between">
-                <span>Subtotal</span>
-                <span className="font-semibold text-[#242620]">
-                  ₹{cartSubtotal.toLocaleString('en-IN')}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span>Estimated Shipping</span>
-                <span className="font-semibold text-[#242620]">
-                  {shippingCharges === 0 ? (
-                    <span className="text-emerald-800 font-bold">FREE</span>
-                  ) : (
-                    `₹${shippingCharges}`
+              {/* Chair Subtotal Breakdown */}
+              {chairSubtotal > 0 && (
+                <>
+                  <div className="flex justify-between">
+                    <span>Chair Subtotal</span>
+                    <span className="font-semibold text-[#242620]">
+                      ₹{chairSubtotal.toLocaleString('en-IN')}
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-[11px] text-[#A8A29E]">
+                    <span>Existing Product Discounts</span>
+                    <span>Already reflected in prices</span>
+                  </div>
+
+                  {chairDiscountAmount > 0 && (
+                    <>
+                      <div className="flex justify-between text-emerald-800 font-semibold">
+                        <span className="flex items-center gap-1">
+                          <Sparkles size={12} />
+                          <span>Additional Chair Discount ({chairDiscountPercentage}%)</span>
+                        </span>
+                        <span>-₹{chairDiscountAmount.toLocaleString('en-IN')}</span>
+                      </div>
+                      <div className="flex justify-between text-xs text-[#13231D] font-medium pb-1">
+                        <span>Final Chair Amount</span>
+                        <span>₹{finalChairAmount.toLocaleString('en-IN')}</span>
+                      </div>
+                    </>
                   )}
-                </span>
+                </>
+              )}
+
+              {/* Other Products Subtotal (Sofas / Accessories) */}
+              {nonChairSubtotal > 0 && (
+                <div className="flex justify-between pt-1 border-t border-dashed border-[#E8E5DE]">
+                  <span>Other Products (Sofas / Accessories)</span>
+                  <span className="font-semibold text-[#242620]">
+                    ₹{nonChairSubtotal.toLocaleString('en-IN')}
+                  </span>
+                </div>
+              )}
+
+              <div className="flex justify-between pt-1">
+                <span>Estimated Shipping</span>
+                <span className="text-emerald-800 font-bold">FREE</span>
               </div>
+
               <div className="flex justify-between pt-2 border-t border-[#E8E5DE] text-sm font-bold text-[#13231D]">
                 <span>Estimated Total</span>
                 <span className="text-[#78836A]">₹{cartTotal.toLocaleString('en-IN')}</span>

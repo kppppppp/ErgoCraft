@@ -194,6 +194,11 @@ class EmailService {
                 <td colspan="2" style="padding: 12px; text-align: right; font-weight: 600;">Subtotal:</td>
                 <td style="padding: 12px; text-align: right;">₹${order.pricing.subtotal.toLocaleString('en-IN')}</td>
               </tr>
+              ${order.pricing.discount > 0 ? `
+              <tr>
+                <td colspan="2" style="padding: 8px 12px; text-align: right; font-weight: 600; color: #047857;">Additional Chair Discount${order.pricing.chairDiscountPercentage ? ` (${order.pricing.chairDiscountPercentage}%)` : ''}:</td>
+                <td style="padding: 8px 12px; text-align: right; color: #047857; font-weight: 600;">-₹${order.pricing.discount.toLocaleString('en-IN')}</td>
+              </tr>` : ''}
               <tr>
                 <td colspan="2" style="padding: 8px 12px; text-align: right; font-weight: 600;">Shipping:</td>
                 <td style="padding: 8px 12px; text-align: right;">${order.pricing.shippingCharges === 0 ? 'FREE' : `₹${order.pricing.shippingCharges}`}</td>

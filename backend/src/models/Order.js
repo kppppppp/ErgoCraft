@@ -14,6 +14,7 @@ const orderItemSchema = new mongoose.Schema(
     mrp: { type: Number, required: true },
     quantity: { type: Number, required: true, min: 1 },
     subtotal: { type: Number, required: true },
+    isChair: { type: Boolean, default: false },
   },
   { _id: false }
 );
@@ -58,6 +59,9 @@ const orderSchema = new mongoose.Schema(
       phone: { type: String, required: true },
     },
     shippingAddress: {
+      fullName: { type: String },
+      phone: { type: String },
+      houseNumber: { type: String },
       street: { type: String, required: true },
       landmark: { type: String },
       city: { type: String, required: true },
@@ -68,6 +72,10 @@ const orderSchema = new mongoose.Schema(
     items: [orderItemSchema],
     pricing: {
       subtotal: { type: Number, required: true, min: 0 },
+      chairSubtotal: { type: Number, default: 0, min: 0 },
+      nonChairSubtotal: { type: Number, default: 0, min: 0 },
+      chairDiscountPercentage: { type: Number, default: 0, min: 0 },
+      chairDiscountAmount: { type: Number, default: 0, min: 0 },
       shippingCharges: { type: Number, required: true, default: 0, min: 0 },
       tax: { type: Number, required: true, default: 0, min: 0 },
       discount: { type: Number, default: 0, min: 0 },

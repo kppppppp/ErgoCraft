@@ -9,6 +9,8 @@ import { paymentService } from '../services/paymentService.js';
 import { emailService } from '../services/emailService.js';
 import { notifyConfirmedOrder, retryOrderNotification } from '../services/orderNotificationService.js';
 import { config } from '../config/env.js';
+import { checkDeliveryServiceability, DEFAULT_RESTRICTED_STATES } from '../utils/deliveryService.js';
+import { calculateCartPricing } from '../services/pricingService.js';
 
 // Helper to generate unique order number
 const generateOrderNumber = () => {
@@ -43,23 +45,48 @@ export const createPendingOrder = asyncHandler(async (req, res) => {
     throw new ApiError(400, 'Order must contain at least one item');
   }
 
-  if (!shippingAddress || !shippingAddress.street || !shippingAddress.city || !shippingAddress.postalCode) {
+  if (!shippingAddress || !shippingAddress.street || !shippingAddress.city || !shippingAddress.state || !shippingAddress.postalCode) {
     throw new ApiError(400, 'Please provide a valid shipping address (street, city, state, postal code)');
+  }
+
+  // Load store settings for delivery restrictions and discount configuration
+  const setting = await Setting.findOne({ key: 'store_settings' });
+  const restrictionsEnabled = setting?.deliveryRestrictions?.enabled ?? true;
+  const restrictedStates = setting?.deliveryRestrictions?.restrictedStates ?? DEFAULT_RESTRICTED_STATES;
+
+  // Validate delivery serviceability
+  const serviceCheck = checkDeliveryServiceability(shippingAddress.state, shippingAddress.postalCode, {
+    restrictedStates,
+    restrictionsEnabled,
+  });
+
+  if (!serviceCheck.serviceable) {
+    throw new ApiError(400, serviceCheck.message || 'Sorry! ErgoCraft currently does not offer delivery services to your location.');
   }
 
   // Bind to authenticated user identity
   const resolvedCustomerDetails = {
-    name: customerDetails?.name?.trim() || req.user.name,
+    name: customerDetails?.name?.trim() || shippingAddress?.fullName?.trim() || req.user.name,
     email: req.user.email, // Bound to authenticated account
-    phone: customerDetails?.phone?.trim() || req.user.phone || '',
+    phone: customerDetails?.phone?.trim() || shippingAddress?.phone?.trim() || req.user.phone || '',
   };
 
-  // Strictly revalidate every item, price, and stock against MongoDB
-  let calculatedSubtotal = 0;
-  const validatedItems = [];
+  const resolvedShippingAddress = {
+    fullName: shippingAddress.fullName?.trim() || resolvedCustomerDetails.name,
+    phone: shippingAddress.phone?.trim() || resolvedCustomerDetails.phone,
+    houseNumber: shippingAddress.houseNumber?.trim() || '',
+    street: shippingAddress.street.trim(),
+    landmark: shippingAddress.landmark?.trim() || '',
+    city: shippingAddress.city.trim(),
+    state: serviceCheck.state,
+    postalCode: serviceCheck.postalCode,
+    country: shippingAddress.country?.trim() || 'India',
+  };
 
+  // Strictly revalidate every item, price, stock, and fetch category hierarchy from MongoDB
+  const productDocMap = new Map();
   for (const item of items) {
-    const product = await Product.findById(item.productId);
+    const product = await Product.findById(item.productId).populate('category subcategory classification');
     if (!product || product.status !== 'published') {
       throw new ApiError(400, `Product "${item.name || item.productId}" is unavailable or discontinued`);
     }
@@ -70,35 +97,59 @@ export const createPendingOrder = asyncHandler(async (req, res) => {
         `Insufficient inventory for "${product.name}". Only ${product.stock} units available.`
       );
     }
+    productDocMap.set(String(product._id), product);
+  }
 
-    const itemSubtotal = product.sellingPrice * item.quantity;
-    calculatedSubtotal += itemSubtotal;
+  const itemsToPrice = items.map((item) => ({
+    product: productDocMap.get(String(item.productId)),
+    quantity: item.quantity,
+  }));
 
+  const pricingResult = calculateCartPricing(itemsToPrice, setting?.chairDiscount);
+  const {
+    subtotal: calculatedSubtotal,
+    chairSubtotal,
+    nonChairSubtotal,
+    chairDiscountPercentage,
+    chairDiscountAmount,
+    discount,
+    shippingCharges,
+    tax,
+    total: finalTotal,
+  } = pricingResult;
+
+  const validatedItems = pricingResult.items.map((pi) => {
+    const product = productDocMap.get(pi.productId);
     const primaryImg = product.images.find((img) => img.isPrimary) || product.images[0];
-
-    validatedItems.push({
+    return {
       product: product._id,
       name: product.name,
       sku: product.sku,
       image: primaryImg?.url || '',
       unitPrice: product.sellingPrice,
       mrp: product.mrp,
-      quantity: item.quantity,
-      subtotal: itemSubtotal,
-    });
-  }
+      quantity: pi.quantity,
+      subtotal: pi.subtotal,
+      isChair: pi.isChair,
+    };
+  });
 
-  // Shipping policy: 100% Free Pan-India Delivery on all orders (₹0)
-  const shippingCharges = 0;
-  const tax = 0; // Prices are all-inclusive of GST
-  const discount = 0;
-  const finalTotal = calculatedSubtotal + shippingCharges + tax - discount;
+  const orderPricing = {
+    subtotal: calculatedSubtotal,
+    chairSubtotal,
+    nonChairSubtotal,
+    chairDiscountPercentage,
+    chairDiscountAmount,
+    shippingCharges,
+    tax,
+    discount,
+    total: finalTotal,
+  };
 
   const orderNumber = generateOrderNumber();
 
   // Handle Cash on Delivery (COD)
   if (paymentMethod === 'cod') {
-    const setting = await Setting.findOne({ key: 'store_settings' });
     const isCodEnabled = setting ? setting.codEnabled : true;
     if (!isCodEnabled) {
       throw new ApiError(400, 'Cash on Delivery (COD) is currently disabled by store administration.');
@@ -125,15 +176,9 @@ export const createPendingOrder = asyncHandler(async (req, res) => {
       orderNumber,
       customer: req.user._id,
       customerDetails: resolvedCustomerDetails,
-      shippingAddress,
+      shippingAddress: resolvedShippingAddress,
       items: validatedItems,
-      pricing: {
-        subtotal: calculatedSubtotal,
-        shippingCharges,
-        tax,
-        discount,
-        total: finalTotal,
-      },
+      pricing: orderPricing,
       paymentStatus: 'pending',
       fulfilmentStatus: 'processing',
       paymentDetails: {
@@ -196,15 +241,9 @@ export const createPendingOrder = asyncHandler(async (req, res) => {
     orderNumber,
     customer: req.user._id,
     customerDetails: resolvedCustomerDetails,
-    shippingAddress,
+    shippingAddress: resolvedShippingAddress,
     items: validatedItems,
-    pricing: {
-      subtotal: calculatedSubtotal,
-      shippingCharges,
-      tax,
-      discount,
-      total: finalTotal,
-    },
+    pricing: orderPricing,
     paymentStatus: 'pending',
     fulfilmentStatus: 'processing',
     paymentDetails: {
@@ -551,4 +590,30 @@ export const retryOrderEmailAdmin = asyncHandler(async (req, res) => {
   if (result.skipped) return res.status(409).json(new ApiResponse(409, { notification: result }, 'Notification was already accepted or is not retryable'));
   return res.status(result.status === 'not_confirmed' || result.status === 'not_ready' ? 409 : 502)
     .json(new ApiResponse(result.status === 'not_confirmed' || result.status === 'not_ready' ? 409 : 502, { notification: result }, result.reason || 'Notification retry failed'));
+});
+
+export const calculateOrderPricing = asyncHandler(async (req, res) => {
+  const { items = [] } = req.body;
+  if (!Array.isArray(items) || items.length === 0) {
+    const emptyResult = calculateCartPricing([], {});
+    return res.status(200).json(new ApiResponse(200, emptyResult, 'Pricing calculated successfully'));
+  }
+
+  const setting = await Setting.findOne({ key: 'store_settings' });
+  const itemsToPrice = [];
+
+  for (const item of items) {
+    const productId = item.productId || item._id;
+    if (!productId) continue;
+    const product = await Product.findById(productId).populate('category subcategory classification');
+    if (product) {
+      itemsToPrice.push({
+        product,
+        quantity: Math.max(1, parseInt(item.quantity, 10) || 1),
+      });
+    }
+  }
+
+  const pricing = calculateCartPricing(itemsToPrice, setting?.chairDiscount);
+  res.status(200).json(new ApiResponse(200, pricing, 'Pricing calculated successfully'));
 });

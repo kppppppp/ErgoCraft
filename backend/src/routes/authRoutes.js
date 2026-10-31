@@ -8,6 +8,9 @@ import {
   resetPassword,
   mergeCart,
   saveCart,
+  addAddress,
+  updateAddress,
+  deleteAddress,
 } from '../controllers/authController.js';
 import { authenticate } from '../middleware/auth.js';
 import { authLimiter } from '../middleware/rateLimiter.js';
@@ -27,6 +30,9 @@ router.post('/logout', authenticate, logout);
 router.get('/me', authenticate, getMe);
 router.post('/cart/merge', authenticate, mergeCart);
 router.put('/cart', authenticate, saveCart);
+router.post('/addresses', authenticate, addAddress);
+router.put('/addresses/:addressId', authenticate, updateAddress);
+router.delete('/addresses/:addressId', authenticate, deleteAddress);
 router.post('/forgot-password', authLimiter, validate(forgotPasswordSchema), forgotPassword);
 router.post('/reset-password', authLimiter, validate(resetPasswordSchema), resetPassword);
 

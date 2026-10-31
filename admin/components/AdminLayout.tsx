@@ -20,6 +20,8 @@ import {
   ShieldCheck,
   Banknote,
   Loader2,
+  Truck,
+  Percent,
 } from 'lucide-react';
 
 interface AdminLayoutProps {
@@ -104,6 +106,9 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
   const navItems = [
     { label: 'Products', href: '/products', icon: Armchair },
     { label: 'Categories', href: '/categories', icon: FolderTree },
+    { label: 'Orders', href: '/orders', icon: ShoppingBag },
+    { label: 'Delivery Restrictions', href: '/delivery', icon: Truck },
+    { label: 'Chair Discounts', href: '/discounts', icon: Percent },
   ];
 
   return (
@@ -172,18 +177,6 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
           })}
 
           <div className="pt-4 mt-4 border-t border-white/10 space-y-1">
-            <Link
-              href="/orders"
-              onClick={() => setMobileOpen(false)}
-              className={`flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-xs font-semibold uppercase tracking-wider transition-all ${
-                pathname === '/orders' || pathname?.startsWith('/orders/')
-                  ? 'bg-[#667151] text-white shadow-sm'
-                  : 'text-white/60 hover:bg-white/5 hover:text-white'
-              }`}
-            >
-              <ShoppingBag size={17} />
-              <span>Orders</span>
-            </Link>
             <a
               href={siteUrl}
               target="_blank"

@@ -8,19 +8,59 @@ import { fetchApi } from '../../lib/api';
 import {
   ShoppingBag,
   LogOut,
-  Package,
   Truck,
-  Clock,
   ExternalLink,
   ShieldCheck,
-  User,
   MapPin,
   Phone,
   Mail,
-  ChevronRight,
   AlertCircle,
   CheckCircle2,
+  Plus,
+  Trash2,
+  Sparkles,
+  Loader2,
+  X,
 } from 'lucide-react';
+
+const ALL_INDIAN_STATES = [
+  'Andhra Pradesh',
+  'Arunachal Pradesh',
+  'Assam',
+  'Bihar',
+  'Chhattisgarh',
+  'Goa',
+  'Gujarat',
+  'Haryana',
+  'Himachal Pradesh',
+  'Jharkhand',
+  'Karnataka',
+  'Kerala',
+  'Madhya Pradesh',
+  'Maharashtra',
+  'Manipur',
+  'Meghalaya',
+  'Mizoram',
+  'Nagaland',
+  'Odisha',
+  'Punjab',
+  'Rajasthan',
+  'Sikkim',
+  'Tamil Nadu',
+  'Telangana',
+  'Tripura',
+  'Uttar Pradesh',
+  'Uttarakhand',
+  'West Bengal',
+  'Andaman and Nicobar Islands',
+  'Chandigarh',
+  'Dadra and Nagar Haveli and Daman and Diu',
+  'Delhi',
+  'Jammu & Kashmir',
+  'Ladakh',
+  'Lakshadweep',
+  'Puducherry',
+];
 
 interface OrderItem {
   name: string;
@@ -28,6 +68,7 @@ interface OrderItem {
   image?: string;
   quantity: number;
   subtotal: number;
+  isChair?: boolean;
 }
 
 interface OrderData {
@@ -42,6 +83,9 @@ interface OrderData {
   fulfilmentStatus: string;
   items: OrderItem[];
   shippingAddress: {
+    fullName?: string;
+    phone?: string;
+    houseNumber?: string;
     street: string;
     landmark?: string;
     city: string;
@@ -56,17 +100,44 @@ interface OrderData {
   };
   pricing: {
     subtotal: number;
+    chairSubtotal?: number;
+    nonChairSubtotal?: number;
+    chairDiscountPercentage?: number;
+    chairDiscountAmount?: number;
+    discount?: number;
     shippingCharges: number;
     total: number;
   };
 }
 
+interface DeliveryCheckResult {
+  serviceable: boolean;
+  message: string;
+  error?: string;
+  state?: string;
+  postalCode?: string;
+  isRestrictedState?: boolean;
+}
+
 function AccountContent() {
   const router = useRouter();
-  const { user, loading: authLoading, logout } = useAuth();
+  const { user, loading: authLoading, logout, refreshUser } = useAuth();
   const [orders, setOrders] = useState<OrderData[]>([]);
   const [loadingOrders, setLoadingOrders] = useState(true);
-  const [selectedOrder, setSelectedOrder] = useState<OrderData | null>(null);
+
+  // Add Address Modal / Form State
+  const [showAddAddress, setShowAddAddress] = useState(false);
+  const [savingAddress, setSavingAddress] = useState(false);
+  const [addressError, setAddressError] = useState('');
+  const [addrName, setAddrName] = useState('');
+  const [addrPhone, setAddrPhone] = useState('');
+  const [addrHouse, setAddrHouse] = useState('');
+  const [addrStreet, setAddrStreet] = useState('');
+  const [addrLandmark, setAddrLandmark] = useState('');
+  const [addrCity, setAddrCity] = useState('');
+  const [addrState, setAddrState] = useState('Maharashtra');
+  const [addrPostalCode, setAddrPostalCode] = useState('');
+  const [deliveryCheck, setDeliveryCheck] = useState<DeliveryCheckResult | null>(null);
 
   const loadOrders = useCallback(async () => {
     setLoadingOrders(true);
@@ -92,6 +163,89 @@ function AccountContent() {
     }, 0);
     return () => window.clearTimeout(timer);
   }, [user, authLoading, router, loadOrders]);
+
+  // Live serviceability check for address form
+  useEffect(() => {
+    if (!addrPostalCode || addrPostalCode.trim().length !== 6 || !addrState) {
+      setDeliveryCheck(null);
+      return;
+    }
+
+    const timer = setTimeout(async () => {
+      try {
+        const res = await fetchApi<DeliveryCheckResult>('/settings/check-delivery', {
+          method: 'POST',
+          body: JSON.stringify({ state: addrState, postalCode: addrPostalCode.trim() }),
+        });
+        setDeliveryCheck(res.data);
+      } catch (err: unknown) {
+        setDeliveryCheck({
+          serviceable: false,
+          message: err instanceof Error ? err.message : 'Invalid delivery location',
+        });
+      }
+    }, 350);
+
+    return () => clearTimeout(timer);
+  }, [addrState, addrPostalCode]);
+
+  const handleCreateAddress = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setAddressError('');
+
+    if (!addrStreet.trim() || !addrCity.trim() || !addrState || !addrPostalCode.trim()) {
+      setAddressError('Please fill in Street, City, State, and 6-digit PIN code.');
+      return;
+    }
+
+    setSavingAddress(true);
+    try {
+      const res = await fetchApi<{ serviceable: boolean; message: string }>('/auth/addresses', {
+        method: 'POST',
+        body: JSON.stringify({
+          fullName: addrName.trim() || user?.name,
+          phone: addrPhone.trim() || user?.phone,
+          houseNumber: addrHouse.trim(),
+          street: addrStreet.trim(),
+          landmark: addrLandmark.trim(),
+          city: addrCity.trim(),
+          state: addrState,
+          postalCode: addrPostalCode.trim(),
+          country: 'India',
+        }),
+      });
+
+      await refreshUser();
+      setShowAddAddress(false);
+      setAddrName('');
+      setAddrPhone('');
+      setAddrHouse('');
+      setAddrStreet('');
+      setAddrLandmark('');
+      setAddrCity('');
+      setAddrState('Maharashtra');
+      setAddrPostalCode('');
+      setDeliveryCheck(null);
+
+      if (!res.data.serviceable) {
+        alert('Sorry! ErgoCraft currently does not offer delivery services to your location. Address saved to your account profile, but cannot be used for checkout.');
+      }
+    } catch (err: unknown) {
+      setAddressError(err instanceof Error ? err.message : 'Failed to save address.');
+    } finally {
+      setSavingAddress(false);
+    }
+  };
+
+  const handleDeleteAddress = async (addrId: string) => {
+    if (!confirm('Are you sure you want to delete this delivery address?')) return;
+    try {
+      await fetchApi(`/auth/addresses/${addrId}`, { method: 'DELETE' });
+      await refreshUser();
+    } catch (err: unknown) {
+      alert(err instanceof Error ? err.message : 'Failed to delete address.');
+    }
+  };
 
   if (authLoading || (!user && !orders.length)) {
     return (
@@ -152,15 +306,15 @@ function AccountContent() {
 
       {/* Main Grid: Orders & Profile */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        {/* Left: Orders History (Span 8) */}
-        <div className="lg:col-span-8 space-y-6">
+        {/* Left: Orders History (Span 7) */}
+        <div className="lg:col-span-7 space-y-6">
           <div className="flex items-center justify-between">
             <div>
               <h2 className="font-serif-luxury text-xl font-bold text-[#13231D]">
                 Your Order History
               </h2>
               <p className="text-xs text-[#73756F] mt-0.5">
-                Real-time tracking and tax invoices for your ergonomic furniture purchases.
+                Real-time tracking, warranty bindings, and tax invoices.
               </p>
             </div>
             <span className="text-xs font-semibold text-[#73756F] bg-[#FAF8F5] px-3 py-1 rounded-lg border border-[#E8E5DE]">
@@ -247,6 +401,11 @@ function AccountContent() {
                             <span className="text-[11px] text-[#73756F] font-mono ml-2">
                               SKU: {item.sku}
                             </span>
+                            {item.isChair && (
+                              <span className="text-[9px] font-bold uppercase ml-2 px-1.5 py-0.2 bg-[#FAF8F5] text-[#78836A] rounded border border-[#E8E5DE]">
+                                Chair
+                              </span>
+                            )}
                           </div>
                           <div className="text-right">
                             <span className="text-[#73756F] mr-3">Qty: {item.quantity}</span>
@@ -257,6 +416,17 @@ function AccountContent() {
                         </div>
                       ))}
                     </div>
+
+                    {/* Additional Chair Discount Indicator */}
+                    {order.pricing.chairDiscountAmount ? (
+                      <div className="p-2.5 px-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-emerald-800 flex items-center justify-between">
+                        <span className="flex items-center gap-1.5 font-semibold">
+                          <Sparkles size={14} className="text-emerald-600" />
+                          <span>Additional Chair Discount Applied ({order.pricing.chairDiscountPercentage}%)</span>
+                        </span>
+                        <span className="font-bold">-₹{order.pricing.chairDiscountAmount.toLocaleString('en-IN')}</span>
+                      </div>
+                    ) : null}
 
                     {/* Courier Tracking Strip */}
                     {order.tracking?.trackingNumber && (
@@ -298,30 +468,261 @@ function AccountContent() {
           )}
         </div>
 
-        {/* Right: Account & Support (Span 4) */}
-        <div className="lg:col-span-4 space-y-6">
+        {/* Right: Saved Addresses & Client Assurance (Span 5) */}
+        <div className="lg:col-span-5 space-y-6">
           {/* Saved Addresses Card */}
           <div className="bg-white rounded-2xl border border-[#E8E5DE] p-6 space-y-4 shadow-xs">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-[#78836A] flex items-center gap-2">
-              <MapPin size={15} />
-              <span>Default Shipping Address</span>
-            </h3>
+            <div className="flex items-center justify-between">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-[#78836A] flex items-center gap-2">
+                <MapPin size={15} />
+                <span>Delivery Addresses ({user.addresses?.length || 0})</span>
+              </h3>
+              <button
+                onClick={() => {
+                  setShowAddAddress(!showAddAddress);
+                  setAddressError('');
+                }}
+                className="px-3 py-1.5 rounded-xl bg-[#13231D] hover:bg-[#78836A] text-white text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer"
+              >
+                {showAddAddress ? <X size={13} /> : <Plus size={13} />}
+                <span>{showAddAddress ? 'Cancel' : 'Add Address'}</span>
+              </button>
+            </div>
 
-            {user.addresses && user.addresses.length > 0 ? (
-              <div className="text-xs text-[#242620] space-y-1">
-                <p className="font-semibold">{user.name}</p>
-                <p className="text-[#73756F]">{user.addresses[0].street}</p>
-                {user.addresses[0].landmark && (
-                  <p className="text-[#73756F]">Near {user.addresses[0].landmark}</p>
+            {/* Add Address Form Drawer/Inline */}
+            {showAddAddress && (
+              <form onSubmit={handleCreateAddress} className="p-4 bg-[#FAF8F5] rounded-xl border border-[#E8E5DE] space-y-3 text-xs">
+                <h4 className="font-bold text-[#13231D] text-xs">Add New Delivery Address</h4>
+
+                {addressError && (
+                  <div className="p-2.5 rounded-lg bg-rose-50 border border-rose-200 text-rose-800 text-[11px] flex items-center gap-2">
+                    <AlertCircle size={14} className="shrink-0" />
+                    <span>{addressError}</span>
+                  </div>
                 )}
-                <p className="text-[#73756F]">
-                  {user.addresses[0].city}, {user.addresses[0].state} - {user.addresses[0].postalCode}
-                </p>
-                <p className="text-[#73756F]">India</p>
+
+                {/* Serviceability indicator in form */}
+                {deliveryCheck && (
+                  <div
+                    className={`p-2.5 rounded-lg text-[11px] font-semibold border flex items-center gap-2 ${
+                      deliveryCheck.serviceable
+                        ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
+                        : 'bg-rose-50 text-rose-800 border-rose-200'
+                    }`}
+                  >
+                    {deliveryCheck.serviceable ? (
+                      <CheckCircle2 size={14} className="text-emerald-600 shrink-0" />
+                    ) : (
+                      <AlertCircle size={14} className="text-rose-600 shrink-0" />
+                    )}
+                    <span>{deliveryCheck.message}</span>
+                  </div>
+                )}
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                  <div>
+                    <label className="block text-[11px] font-semibold text-gray-700 mb-0.5">Full Name</label>
+                    <input
+                      type="text"
+                      placeholder={user.name}
+                      value={addrName}
+                      onChange={(e) => setAddrName(e.target.value)}
+                      className="w-full px-2.5 py-1.5 rounded-lg border border-gray-200 bg-white"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-semibold text-gray-700 mb-0.5">Mobile Number</label>
+                    <input
+                      type="tel"
+                      placeholder={user.phone || '9876543210'}
+                      value={addrPhone}
+                      onChange={(e) => setAddrPhone(e.target.value)}
+                      className="w-full px-2.5 py-1.5 rounded-lg border border-gray-200 bg-white"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                  <div>
+                    <label className="block text-[11px] font-semibold text-gray-700 mb-0.5">House / Flat No.</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. 402"
+                      value={addrHouse}
+                      onChange={(e) => setAddrHouse(e.target.value)}
+                      className="w-full px-2.5 py-1.5 rounded-lg border border-gray-200 bg-white"
+                    />
+                  </div>
+                  <div className="sm:col-span-2">
+                    <label className="block text-[11px] font-semibold text-gray-700 mb-0.5">Street / Locality *</label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. Linking Road, Bandra"
+                      value={addrStreet}
+                      onChange={(e) => setAddrStreet(e.target.value)}
+                      className="w-full px-2.5 py-1.5 rounded-lg border border-gray-200 bg-white"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                  <div>
+                    <label className="block text-[11px] font-semibold text-gray-700 mb-0.5">City *</label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. Mumbai"
+                      value={addrCity}
+                      onChange={(e) => setAddrCity(e.target.value)}
+                      className="w-full px-2.5 py-1.5 rounded-lg border border-gray-200 bg-white"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-semibold text-gray-700 mb-0.5">Landmark (Optional)</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Near Metro"
+                      value={addrLandmark}
+                      onChange={(e) => setAddrLandmark(e.target.value)}
+                      className="w-full px-2.5 py-1.5 rounded-lg border border-gray-200 bg-white"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                  <div>
+                    <label className="block text-[11px] font-semibold text-gray-700 mb-0.5">State *</label>
+                    <select
+                      value={addrState}
+                      onChange={(e) => setAddrState(e.target.value)}
+                      className="w-full px-2.5 py-1.5 rounded-lg border border-gray-200 bg-white text-xs"
+                    >
+                      {ALL_INDIAN_STATES.map((s) => (
+                        <option key={s} value={s}>
+                          {s}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-semibold text-gray-700 mb-0.5">PIN Code (6 digits) *</label>
+                    <input
+                      type="text"
+                      required
+                      maxLength={6}
+                      value={addrPostalCode}
+                      onChange={(e) => setAddrPostalCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                      placeholder="e.g. 400050"
+                      className="w-full px-2.5 py-1.5 font-mono rounded-lg border border-gray-200 bg-white"
+                    />
+                  </div>
+                </div>
+
+                <div className="pt-1 flex items-center justify-end gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowAddAddress(false)}
+                    className="px-3 py-1.5 rounded-lg border border-gray-300 text-gray-600 hover:bg-gray-100"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={savingAddress}
+                    className="px-4 py-1.5 rounded-lg bg-[#13231D] text-white font-semibold hover:bg-[#78836A] disabled:opacity-50 flex items-center gap-1.5 cursor-pointer"
+                  >
+                    {savingAddress ? <Loader2 size={13} className="animate-spin" /> : null}
+                    <span>Save Address</span>
+                  </button>
+                </div>
+              </form>
+            )}
+
+            {/* List of saved addresses */}
+            {user.addresses && user.addresses.length > 0 ? (
+              <div className="space-y-3">
+                {user.addresses.map((addr, idx) => {
+                  // Restricted check: List of 16 default restricted states
+                  const isRestricted = [
+                    'jammu & kashmir',
+                    'himachal pradesh',
+                    'uttarakhand',
+                    'uttar pradesh',
+                    'bihar',
+                    'jharkhand',
+                    'west bengal',
+                    'odisha',
+                    'sikkim',
+                    'arunachal pradesh',
+                    'assam',
+                    'manipur',
+                    'meghalaya',
+                    'mizoram',
+                    'nagaland',
+                    'tripura',
+                  ].includes(addr.state.toLowerCase());
+
+                  return (
+                    <div
+                      key={addr._id || idx}
+                      className={`p-4 rounded-xl border text-xs space-y-2 relative ${
+                        isRestricted
+                          ? 'border-rose-200 bg-rose-50/40'
+                          : 'border-[#E8E5DE] bg-[#FAF8F5]/50'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <span className="font-bold text-[#13231D]">{addr.fullName || user.name}</span>
+                          {addr.isDefault && (
+                            <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-[#78836A] text-white">
+                              Default
+                            </span>
+                          )}
+                        </div>
+                        {addr._id && (
+                          <button
+                            onClick={() => handleDeleteAddress(addr._id!)}
+                            className="text-gray-400 hover:text-rose-600 transition cursor-pointer p-1"
+                            title="Delete address"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        )}
+                      </div>
+
+                      <div className="text-[#73756F] space-y-0.5">
+                        {addr.houseNumber && <p>{addr.houseNumber}, {addr.street}</p>}
+                        {!addr.houseNumber && <p>{addr.street}</p>}
+                        {addr.landmark && <p className="text-[11px]">Near {addr.landmark}</p>}
+                        <p className="font-medium text-[#242620]">
+                          {addr.city}, {addr.state} - {addr.postalCode}
+                        </p>
+                        {addr.phone && <p className="text-[11px]">Phone: {addr.phone}</p>}
+                      </div>
+
+                      {/* Delivery Status Badge */}
+                      <div className="pt-2 border-t border-gray-200/60">
+                        {isRestricted ? (
+                          <div className="flex items-start gap-1.5 text-rose-800 text-[11px] font-medium">
+                            <AlertCircle size={14} className="text-rose-600 shrink-0 mt-0.5" />
+                            <span>Sorry! ErgoCraft currently does not offer delivery services to your location.</span>
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-1.5 text-emerald-800 text-[11px] font-medium">
+                            <CheckCircle2 size={14} className="text-emerald-600 shrink-0" />
+                            <span>Serviceable Delivery Location</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             ) : (
               <p className="text-xs text-[#73756F]">
-                No delivery address saved yet. Addresses are saved automatically upon your first checkout.
+                No delivery address saved yet. Click &quot;Add Address&quot; above to save your delivery location.
               </p>
             )}
           </div>

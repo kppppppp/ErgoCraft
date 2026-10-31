@@ -12,11 +12,52 @@ import {
   AlertCircle,
   ShoppingBag,
   ShieldCheck,
-  User,
-  ArrowRight,
   CreditCard,
   Banknote,
+  Sparkles,
+  MapPin,
+  Truck,
+  Loader2,
 } from 'lucide-react';
+
+const ALL_INDIAN_STATES = [
+  'Andhra Pradesh',
+  'Arunachal Pradesh',
+  'Assam',
+  'Bihar',
+  'Chhattisgarh',
+  'Goa',
+  'Gujarat',
+  'Haryana',
+  'Himachal Pradesh',
+  'Jharkhand',
+  'Karnataka',
+  'Kerala',
+  'Madhya Pradesh',
+  'Maharashtra',
+  'Manipur',
+  'Meghalaya',
+  'Mizoram',
+  'Nagaland',
+  'Odisha',
+  'Punjab',
+  'Rajasthan',
+  'Sikkim',
+  'Tamil Nadu',
+  'Telangana',
+  'Tripura',
+  'Uttar Pradesh',
+  'Uttarakhand',
+  'West Bengal',
+  'Andaman and Nicobar Islands',
+  'Chandigarh',
+  'Dadra and Nagar Haveli and Daman and Diu',
+  'Delhi',
+  'Jammu & Kashmir',
+  'Ladakh',
+  'Lakshadweep',
+  'Puducherry',
+];
 
 interface CreateOrderResponse {
   orderId: string;
@@ -41,13 +82,33 @@ interface ConfirmedOrder {
   paymentStatus: string;
   paymentDetails?: { provider?: string; paymentId?: string };
   items: ConfirmedOrderItem[];
-  pricing: { total: number };
+  pricing: {
+    subtotal: number;
+    chairSubtotal?: number;
+    nonChairSubtotal?: number;
+    chairDiscountPercentage?: number;
+    chairDiscountAmount?: number;
+    discount?: number;
+    total: number;
+  };
   shippingAddress: {
+    fullName?: string;
+    phone?: string;
+    houseNumber?: string;
     street: string;
     city: string;
     state: string;
     postalCode: string;
   };
+}
+
+interface DeliveryCheckResult {
+  serviceable: boolean;
+  message: string;
+  error?: string;
+  state?: string;
+  postalCode?: string;
+  isRestrictedState?: boolean;
 }
 
 interface RazorpaySuccessResponse {
@@ -78,19 +139,35 @@ declare global {
 export default function CheckoutPage() {
   const router = useRouter();
   const { user, loading: authLoading } = useAuth();
-  const { cart, cartSubtotal, shippingCharges, cartTotal, clearCart } = useCart();
+  const {
+    cart,
+    cartSubtotal,
+    chairSubtotal,
+    nonChairSubtotal,
+    chairDiscountPercentage,
+    chairDiscountAmount,
+    finalChairAmount,
+    shippingCharges,
+    cartTotal,
+    clearCart,
+  } = useCart();
 
-  // Customer Contact - populated from authenticated user
+  // Customer Contact
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
 
-  // Shipping Address
+  // Shipping Address Fields
+  const [houseNumber, setHouseNumber] = useState('');
   const [street, setStreet] = useState('');
   const [landmark, setLandmark] = useState('');
   const [city, setCity] = useState('');
   const [state, setState] = useState('Maharashtra');
   const [postalCode, setPostalCode] = useState('');
+
+  // Delivery Serviceability State
+  const [checkingDelivery, setCheckingDelivery] = useState(false);
+  const [deliveryStatus, setDeliveryStatus] = useState<DeliveryCheckResult | null>(null);
 
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
@@ -108,6 +185,9 @@ export default function CheckoutPage() {
       setPhone(user.phone || '');
       if (user.addresses && user.addresses.length > 0) {
         const defaultAddr = user.addresses.find((a) => a.isDefault) || user.addresses[0];
+        setName(defaultAddr.fullName || user.name || '');
+        setPhone(defaultAddr.phone || user.phone || '');
+        setHouseNumber(defaultAddr.houseNumber || '');
         setStreet(defaultAddr.street || '');
         setLandmark(defaultAddr.landmark || '');
         setCity(defaultAddr.city || '');
@@ -132,6 +212,34 @@ export default function CheckoutPage() {
       .catch(() => {});
   }, []);
 
+  // Validate delivery serviceability when state or PIN code changes
+  useEffect(() => {
+    if (!postalCode || postalCode.trim().length !== 6 || !state) {
+      setDeliveryStatus(null);
+      return;
+    }
+
+    const timer = setTimeout(async () => {
+      setCheckingDelivery(true);
+      try {
+        const res = await fetchApi<DeliveryCheckResult>('/settings/check-delivery', {
+          method: 'POST',
+          body: JSON.stringify({ state, postalCode: postalCode.trim() }),
+        });
+        setDeliveryStatus(res.data);
+      } catch (err: unknown) {
+        setDeliveryStatus({
+          serviceable: false,
+          message: err instanceof Error ? err.message : 'Invalid delivery location',
+        });
+      } finally {
+        setCheckingDelivery(false);
+      }
+    }, 350);
+
+    return () => clearTimeout(timer);
+  }, [state, postalCode]);
+
   // Load Razorpay checkout script on mount
   useEffect(() => {
     if (typeof window !== 'undefined' && !window.Razorpay) {
@@ -154,51 +262,39 @@ export default function CheckoutPage() {
     );
   }
 
-  // 2. Strict authentication gate: redirect to login if unauthenticated
-  if (!user && !confirmedOrder) {
+  // 2. Unauthenticated Gate
+  if (!user) {
     return (
-      <div className="max-w-lg mx-auto px-4 py-20 text-center">
-        <div className="w-16 h-16 rounded-2xl bg-[#FAF8F5] border border-[#E8E5DE] text-[#78836A] flex items-center justify-center mx-auto mb-4 shadow-xs">
-          <User size={30} />
+      <div className="max-w-md mx-auto px-4 py-20 text-center space-y-4">
+        <div className="w-14 h-14 rounded-2xl bg-amber-50 text-amber-800 flex items-center justify-center mx-auto border border-amber-200">
+          <Lock size={28} />
         </div>
-        <span className="text-[10px] font-bold tracking-widest uppercase text-[#78836A] block mb-1">
-          Authentication Mandatory
-        </span>
-        <h2 className="text-2xl font-serif-luxury font-bold text-[#13231D] mb-2">
-          Sign In to Complete Your Order
+        <h2 className="text-xl font-serif-luxury font-bold text-[#13231D]">
+          Customer Sign-In Required
         </h2>
-        <p className="text-xs text-[#73756F] mb-6 leading-relaxed">
-          In accordance with Ergocraft security policy, guest checkout is disabled.
-          Please sign in to your registered account or create a new one to complete payment.
-          Your bag with <strong>{cart.length} item(s)</strong> is saved.
+        <p className="text-xs text-[#73756F] leading-relaxed">
+          To maintain luxury manufacturing records, 3-year warranty bindings, and tax invoices, ErgoCraft requires customer authentication before placing an order.
         </p>
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+        <div className="pt-2">
           <Link
             href="/login?returnUrl=/checkout"
-            className="w-full sm:w-auto px-6 py-3 rounded-xl bg-[#13231D] hover:bg-[#78836A] text-white text-xs font-bold uppercase tracking-wider transition flex items-center justify-center gap-2 shadow-xs"
+            className="w-full py-3 px-6 rounded-xl bg-[#13231D] hover:bg-[#78836A] text-white text-xs font-bold uppercase tracking-wider transition inline-block shadow-xs"
           >
-            <span>Sign In to Checkout</span>
-            <ArrowRight size={14} />
-          </Link>
-          <Link
-            href="/register?returnUrl=/checkout"
-            className="w-full sm:w-auto px-6 py-3 rounded-xl border border-[#E8E5DE] bg-white text-[#242620] text-xs font-bold uppercase tracking-wider hover:bg-[#FAF8F5] transition"
-          >
-            Create New Account
+            Sign In to Complete Order
           </Link>
         </div>
       </div>
     );
   }
 
-  // 3. If bag is empty and no confirmed order yet
+  // 3. Empty cart gate
   if (cart.length === 0 && !confirmedOrder) {
     return (
-      <div className="max-w-3xl mx-auto px-4 py-20 text-center">
-        <div className="w-16 h-16 rounded-2xl bg-[#F7F5F0] border border-[#E8E5DE] text-[#78836A] flex items-center justify-center mx-auto mb-3">
-          <ShoppingBag size={32} />
+      <div className="max-w-md mx-auto px-4 py-20 text-center space-y-4">
+        <div className="w-14 h-14 rounded-2xl bg-[#F7F5F0] text-[#78836A] flex items-center justify-center mx-auto border border-[#E8E5DE]">
+          <ShoppingBag size={28} />
         </div>
-        <h2 className="text-xl font-serif-luxury font-bold text-[#13231D] mb-2">
+        <h2 className="text-xl font-serif-luxury font-bold text-[#13231D]">
           Your Shopping Bag is Empty
         </h2>
         <p className="text-xs text-[#73756F] mb-6">
@@ -257,7 +353,8 @@ export default function CheckoutPage() {
             <div className="p-3 rounded-xl bg-amber-50/70 border border-amber-200 text-xs text-amber-800 flex items-start gap-2">
               <Banknote size={16} className="text-amber-700 shrink-0 mt-0.5" />
               <span>
-                <strong>Doorstep Payment:</strong> Please have <strong>₹{confirmedOrder.pricing.total.toLocaleString('en-IN')}</strong> ready in cash or UPI QR scan upon courier delivery.
+                <strong>Doorstep Payment:</strong> Please have{' '}
+                <strong>₹{confirmedOrder.pricing.total.toLocaleString('en-IN')}</strong> ready in cash or UPI QR scan upon courier delivery.
               </span>
             </div>
           )}
@@ -276,6 +373,28 @@ export default function CheckoutPage() {
             ))}
           </div>
 
+          {/* Pricing Breakdown with Chair Discount */}
+          <div className="pt-3 border-t border-[#E8E5DE] space-y-1.5 text-xs text-[#73756F]">
+            <div className="flex justify-between">
+              <span>Subtotal:</span>
+              <span className="font-semibold text-[#242620]">
+                ₹{confirmedOrder.pricing.subtotal.toLocaleString('en-IN')}
+              </span>
+            </div>
+            {confirmedOrder.pricing.chairDiscountAmount ? (
+              <div className="flex justify-between text-emerald-800 font-semibold">
+                <span>
+                  Additional Chair Discount ({confirmedOrder.pricing.chairDiscountPercentage}%):
+                </span>
+                <span>-₹{confirmedOrder.pricing.chairDiscountAmount.toLocaleString('en-IN')}</span>
+              </div>
+            ) : null}
+            <div className="flex justify-between">
+              <span>Shipping:</span>
+              <span className="text-emerald-800 font-bold">FREE</span>
+            </div>
+          </div>
+
           <div className="pt-3 border-t border-[#E8E5DE] flex justify-between text-sm font-bold text-[#13231D]">
             <span>{isCod ? 'Payable upon Delivery' : 'Total Amount Paid'}</span>
             <span className="text-[#78836A]">
@@ -286,6 +405,7 @@ export default function CheckoutPage() {
           <div className="pt-2 text-xs text-[#73756F] border-t border-[#E8E5DE]">
             <p>
               <strong className="text-[#242620]">Shipping Destination:</strong>{' '}
+              {confirmedOrder.shippingAddress.houseNumber ? `${confirmedOrder.shippingAddress.houseNumber}, ` : ''}
               {confirmedOrder.shippingAddress.street}, {confirmedOrder.shippingAddress.city},{' '}
               {confirmedOrder.shippingAddress.state} - {confirmedOrder.shippingAddress.postalCode}
             </p>
@@ -311,16 +431,19 @@ export default function CheckoutPage() {
   }
 
   // 5. Checkout submission and Razorpay payment flow
-  if (!user) {
-    return null;
-  }
+  const isDeliveryBlocked = deliveryStatus ? !deliveryStatus.serviceable : false;
 
   const handleCheckoutSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
 
-    if (!name.trim() || !phone.trim() || !street.trim() || !city.trim() || !postalCode.trim()) {
+    if (!name.trim() || !phone.trim() || !street.trim() || !city.trim() || !state.trim() || !postalCode.trim()) {
       setError('Please complete all required shipping and contact details.');
+      return;
+    }
+
+    if (isDeliveryBlocked) {
+      setError(deliveryStatus?.message || 'Sorry! ErgoCraft currently does not offer delivery services to your location.');
       return;
     }
 
@@ -332,6 +455,9 @@ export default function CheckoutPage() {
         items: cart.map((i) => ({ productId: i.productId, quantity: i.quantity })),
         customerDetails: { name: name.trim(), email: user.email, phone: phone.trim() },
         shippingAddress: {
+          fullName: name.trim(),
+          phone: phone.trim(),
+          houseNumber: houseNumber.trim(),
           street: street.trim(),
           landmark: landmark.trim(),
           city: city.trim(),
@@ -345,13 +471,19 @@ export default function CheckoutPage() {
       const createRes = await fetchApi<CreateOrderResponse>('/orders/create', {
         method: 'POST',
         headers: {
-          'Idempotency-Key': checkoutKeyRef.current || (checkoutKeyRef.current = typeof window !== 'undefined'
-            ? (sessionStorage.getItem('ergocraft_checkout_request_key') || crypto.randomUUID())
-            : crypto.randomUUID()),
+          'Idempotency-Key':
+            checkoutKeyRef.current ||
+            (checkoutKeyRef.current =
+              typeof window !== 'undefined'
+                ? sessionStorage.getItem('ergocraft_checkout_request_key') || crypto.randomUUID()
+                : crypto.randomUUID()),
         },
         body: JSON.stringify(orderPayload),
       });
-      if (typeof window !== 'undefined') sessionStorage.setItem('ergocraft_checkout_request_key', checkoutKeyRef.current || '');
+
+      if (typeof window !== 'undefined') {
+        sessionStorage.setItem('ergocraft_checkout_request_key', checkoutKeyRef.current || '');
+      }
 
       const orderData = createRes.data;
 
@@ -362,7 +494,9 @@ export default function CheckoutPage() {
           const orderResponse = await fetchApi<{ order: ConfirmedOrder }>(`/orders/${orderData.orderId}`);
           persistedOrder = orderResponse.data.order;
         }
-        if (!persistedOrder) throw new Error('The order was created, but its saved details could not be loaded. Please check My Account before retrying.');
+        if (!persistedOrder) {
+          throw new Error('The order was created, but its saved details could not be loaded. Please check My Account before retrying.');
+        }
         clearCart();
         checkoutKeyRef.current = null;
         if (typeof window !== 'undefined') sessionStorage.removeItem('ergocraft_checkout_request_key');
@@ -376,18 +510,17 @@ export default function CheckoutPage() {
         throw new Error('Razorpay payment gateway failed to load. Please refresh and try again.');
       }
 
-      // 3. Open Real Razorpay Test Mode Checkout modal
+      // 3. Open Real Razorpay modal
       const options = {
-        key: orderData.key || '',
-        amount: orderData.amount || 0,
+        key: orderData.key || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || 'rzp_live_TtKzIokXKQXVZ3',
+        amount: orderData.amount,
         currency: orderData.currency || 'INR',
-        name: 'ErgoCraft Seating Pvt. Ltd.',
+        name: 'Ergocraft Seating Pvt. Ltd.',
         description: `Order #${orderData.orderNumber}`,
         image: '/images/logo.png',
         order_id: orderData.razorpayOrderId,
         handler: async function (response: RazorpaySuccessResponse) {
           try {
-            setSubmitting(true);
             const verifyRes = await fetchApi<VerifyPaymentResponse>('/orders/verify-payment', {
               method: 'POST',
               body: JSON.stringify({
@@ -400,11 +533,14 @@ export default function CheckoutPage() {
 
             clearCart();
             checkoutKeyRef.current = null;
-            sessionStorage.removeItem('ergocraft_checkout_request_key');
+            if (typeof window !== 'undefined') sessionStorage.removeItem('ergocraft_checkout_request_key');
             setConfirmedOrder(verifyRes.data.order);
-          } catch (vErr: unknown) {
-            const msg = vErr instanceof Error ? vErr.message : 'Payment verification failed.';
-            setError(msg);
+          } catch (verifyErr: unknown) {
+            setError(
+              verifyErr instanceof Error
+                ? verifyErr.message
+                : 'Payment was captured but verification timed out. Our team is finalizing your order.'
+            );
           } finally {
             setSubmitting(false);
           }
@@ -447,7 +583,9 @@ export default function CheckoutPage() {
         </div>
         <div className="flex items-center gap-2 text-xs text-[#73756F] bg-[#FAF8F5] px-3.5 py-2 rounded-xl border border-[#E8E5DE]">
           <ShieldCheck size={16} className="text-emerald-700" />
-          <span>Authenticated Account: <strong className="text-[#13231D]">{user.email}</strong></span>
+          <span>
+            Authenticated Account: <strong className="text-[#13231D]">{user.email}</strong>
+          </span>
         </div>
       </div>
 
@@ -483,7 +621,7 @@ export default function CheckoutPage() {
 
               <div>
                 <label className="block text-xs font-semibold text-[#242620] mb-1">
-                  Phone Number (for Courier SMS) *
+                  Mobile Number (for Courier SMS) *
                 </label>
                 <input
                   type="tel"
@@ -511,22 +649,72 @@ export default function CheckoutPage() {
 
           {/* Shipping Address */}
           <div className="bg-white rounded-2xl border border-[#E8E5DE] p-6 space-y-4 shadow-xs">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-[#78836A]">
-              2. Delivery Destination
-            </h3>
+            <div className="flex items-center justify-between">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-[#78836A] flex items-center gap-2">
+                <MapPin size={15} />
+                <span>2. Delivery Address</span>
+              </h3>
+              {checkingDelivery && (
+                <span className="text-[11px] text-[#78836A] flex items-center gap-1 font-medium">
+                  <Loader2 size={12} className="animate-spin" />
+                  Checking serviceability...
+                </span>
+              )}
+            </div>
+
+            {/* Delivery Serviceability Feedback Alert */}
+            {deliveryStatus && (
+              <div
+                className={`p-3.5 rounded-xl text-xs flex items-start gap-2.5 border ${
+                  deliveryStatus.serviceable
+                    ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
+                    : 'bg-rose-50 text-rose-800 border-rose-200'
+                }`}
+              >
+                {deliveryStatus.serviceable ? (
+                  <CheckCircle2 size={16} className="text-emerald-600 shrink-0 mt-0.5" />
+                ) : (
+                  <AlertCircle size={16} className="text-rose-600 shrink-0 mt-0.5" />
+                )}
+                <div>
+                  <span className="font-semibold block">{deliveryStatus.message}</span>
+                  {!deliveryStatus.serviceable && (
+                    <span className="text-[11px] text-rose-700 block mt-0.5">
+                      Please enter a serviceable delivery address to complete your purchase.
+                    </span>
+                  )}
+                </div>
+              </div>
+            )}
+
             <div className="space-y-4">
-              <div>
-                <label className="block text-xs font-semibold text-[#242620] mb-1">
-                  Street Address & Flat / Floor *
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={street}
-                  onChange={(e) => setStreet(e.target.value)}
-                  placeholder="e.g. 402, Highline Residency, Bandra West"
-                  className="w-full px-3 py-2 text-xs rounded-xl border border-[#E8E5DE] bg-[#F7F5F0]/50 text-[#242620] focus:outline-none focus:border-[#78836A] focus:bg-white transition"
-                />
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-[#242620] mb-1">
+                    House / Building No.
+                  </label>
+                  <input
+                    type="text"
+                    value={houseNumber}
+                    onChange={(e) => setHouseNumber(e.target.value)}
+                    placeholder="e.g. Flat 402, B-Wing"
+                    className="w-full px-3 py-2 text-xs rounded-xl border border-[#E8E5DE] bg-[#F7F5F0]/50 text-[#242620] focus:outline-none focus:border-[#78836A] focus:bg-white transition"
+                  />
+                </div>
+
+                <div className="sm:col-span-2">
+                  <label className="block text-xs font-semibold text-[#242620] mb-1">
+                    Street / Locality *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={street}
+                    onChange={(e) => setStreet(e.target.value)}
+                    placeholder="e.g. Highline Residency, Linking Road"
+                    className="w-full px-3 py-2 text-xs rounded-xl border border-[#E8E5DE] bg-[#F7F5F0]/50 text-[#242620] focus:outline-none focus:border-[#78836A] focus:bg-white transition"
+                  />
+                </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -561,29 +749,36 @@ export default function CheckoutPage() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-semibold text-[#242620] mb-1">
-                    State *
+                    State (Indian State / UT) *
                   </label>
-                  <input
-                    type="text"
+                  <select
                     required
                     value={state}
                     onChange={(e) => setState(e.target.value)}
-                    placeholder="e.g. Maharashtra"
                     className="w-full px-3 py-2 text-xs rounded-xl border border-[#E8E5DE] bg-[#F7F5F0]/50 text-[#242620] focus:outline-none focus:border-[#78836A] focus:bg-white transition"
-                  />
+                  >
+                    <option value="">Select Indian State...</option>
+                    {ALL_INDIAN_STATES.map((s) => (
+                      <option key={s} value={s}>
+                        {s}
+                      </option>
+                    ))}
+                  </select>
                 </div>
 
                 <div>
                   <label className="block text-xs font-semibold text-[#242620] mb-1">
-                    PIN Code *
+                    PIN Code (6 Digits) *
                   </label>
                   <input
                     type="text"
                     required
+                    maxLength={6}
+                    pattern="[1-9][0-9]{5}"
                     value={postalCode}
-                    onChange={(e) => setPostalCode(e.target.value)}
+                    onChange={(e) => setPostalCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
                     placeholder="e.g. 400050"
-                    className="w-full px-3 py-2 text-xs rounded-xl border border-[#E8E5DE] bg-[#F7F5F0]/50 text-[#242620] focus:outline-none focus:border-[#78836A] focus:bg-white transition"
+                    className="w-full px-3 py-2 text-xs font-mono rounded-xl border border-[#E8E5DE] bg-[#F7F5F0]/50 text-[#242620] focus:outline-none focus:border-[#78836A] focus:bg-white transition"
                   />
                 </div>
               </div>
@@ -641,7 +836,7 @@ export default function CheckoutPage() {
                 }}
                 className={`flex items-start gap-3.5 p-4 rounded-xl border transition ${
                   !codAvailable
-                    ? 'opacity-60 cursor-not-allowed bg-gray-50 border-[#E8E5DE]'
+                    ? 'opacity-60 bg-gray-50 border-gray-200 cursor-not-allowed'
                     : paymentMethod === 'cod'
                     ? 'border-[#78836A] bg-[#FAF8F5] cursor-pointer'
                     : 'border-[#E8E5DE] hover:border-gray-300 bg-white cursor-pointer'
@@ -661,9 +856,7 @@ export default function CheckoutPage() {
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <Banknote size={16} className="text-[#78836A]" />
-                      <span className="text-xs font-bold text-[#13231D]">
-                        Cash on Delivery (Pay at Doorstep)
-                      </span>
+                      <span className="text-xs font-bold text-[#13231D]">Cash on Delivery</span>
                     </div>
                     {codAvailable ? (
                       <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200">
@@ -706,7 +899,14 @@ export default function CheckoutPage() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <h4 className="text-xs font-semibold text-[#242620] truncate">{item.name}</h4>
-                    <span className="text-[11px] text-[#73756F]">Qty: {item.quantity}</span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[11px] text-[#73756F]">Qty: {item.quantity}</span>
+                      {item.isChair && (
+                        <span className="text-[9px] font-bold uppercase text-[#78836A]">
+                          Chair Offer
+                        </span>
+                      )}
+                    </div>
                   </div>
                   <span className="text-xs font-bold text-[#13231D]">
                     ₹{(item.sellingPrice * item.quantity).toLocaleString('en-IN')}
@@ -715,52 +915,94 @@ export default function CheckoutPage() {
               ))}
             </div>
 
-            {/* Calculations */}
+            {/* Transparent Price Calculations */}
             <div className="pt-4 border-t border-[#E8E5DE] space-y-2 text-xs text-[#73756F]">
-              <div className="flex justify-between">
-                <span>Subtotal</span>
-                <span className="font-semibold text-[#242620]">
-                  ₹{cartSubtotal.toLocaleString('en-IN')}
-                </span>
-              </div>
-              <div className="flex justify-between">
+              {chairSubtotal > 0 && (
+                <>
+                  <div className="flex justify-between">
+                    <span>Chair Subtotal</span>
+                    <span className="font-semibold text-[#242620]">
+                      ₹{chairSubtotal.toLocaleString('en-IN')}
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-[11px] text-[#A8A29E]">
+                    <span>Existing Product Discounts</span>
+                    <span>Already reflected in prices</span>
+                  </div>
+
+                  {chairDiscountAmount > 0 && (
+                    <>
+                      <div className="flex justify-between text-emerald-800 font-semibold">
+                        <span className="flex items-center gap-1">
+                          <Sparkles size={12} />
+                          <span>Additional Chair Discount ({chairDiscountPercentage}%)</span>
+                        </span>
+                        <span>-₹{chairDiscountAmount.toLocaleString('en-IN')}</span>
+                      </div>
+                      <div className="flex justify-between text-[#13231D] font-medium text-[11px] pb-1">
+                        <span>Final Chair Amount</span>
+                        <span>₹{finalChairAmount.toLocaleString('en-IN')}</span>
+                      </div>
+                    </>
+                  )}
+                </>
+              )}
+
+              {nonChairSubtotal > 0 && (
+                <div className="flex justify-between pt-1 border-t border-dashed border-[#E8E5DE]">
+                  <span>Other Products (Sofas / Accessories)</span>
+                  <span className="font-semibold text-[#242620]">
+                    ₹{nonChairSubtotal.toLocaleString('en-IN')}
+                  </span>
+                </div>
+              )}
+
+              <div className="flex justify-between pt-1">
                 <span>Shipping Charges</span>
-                <span className="font-semibold text-[#242620]">
-                  <span className="text-emerald-800 font-bold">FREE (Complimentary)</span>
-                </span>
+                <span className="text-emerald-800 font-bold">FREE (Complimentary)</span>
               </div>
               <div className="flex justify-between">
                 <span>GST Tax</span>
                 <span className="text-emerald-800 font-medium">Included in product price</span>
               </div>
+
               <div className="flex justify-between pt-2 border-t border-[#E8E5DE] text-base font-bold text-[#13231D]">
                 <span>Total Payable</span>
                 <span className="text-[#78836A]">₹{cartTotal.toLocaleString('en-IN')}</span>
               </div>
             </div>
 
+            {/* Blocked Delivery Banner above Submit Button */}
+            {isDeliveryBlocked && (
+              <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs font-semibold flex items-start gap-2">
+                <AlertCircle size={16} className="text-rose-600 shrink-0 mt-0.5" />
+                <span>
+                  Delivery is unavailable to {state}. Please choose a serviceable address to place order.
+                </span>
+              </div>
+            )}
+
             <button
               type="submit"
-              disabled={submitting}
-              className="w-full py-4 px-4 rounded-xl bg-[#13231D] hover:bg-[#78836A] text-white text-xs font-bold tracking-wider uppercase transition flex items-center justify-center gap-2 shadow-xs disabled:opacity-50 cursor-pointer"
+              disabled={submitting || isDeliveryBlocked}
+              className="w-full py-4 px-4 rounded-xl bg-[#13231D] hover:bg-[#78836A] text-white text-xs font-bold tracking-wider uppercase transition flex items-center justify-center gap-2 shadow-xs disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
             >
-              {paymentMethod === 'cod' ? (
+              {submitting ? (
+                <>
+                  <Loader2 size={15} className="animate-spin" />
+                  <span>Processing...</span>
+                </>
+              ) : isDeliveryBlocked ? (
+                <span>Delivery Unavailable for Address</span>
+              ) : paymentMethod === 'cod' ? (
                 <>
                   <Banknote size={16} />
-                  <span>
-                    {submitting
-                      ? 'Placing Order...'
-                      : `Confirm COD Order (₹${cartTotal.toLocaleString('en-IN')})`}
-                  </span>
+                  <span>Confirm COD Order (₹{cartTotal.toLocaleString('en-IN')})</span>
                 </>
               ) : (
                 <>
                   <Lock size={15} />
-                  <span>
-                    {submitting
-                      ? 'Initiating Razorpay...'
-                      : `Pay ₹${cartTotal.toLocaleString('en-IN')}`}
-                  </span>
+                  <span>Pay ₹{cartTotal.toLocaleString('en-IN')} via Razorpay</span>
                 </>
               )}
             </button>
@@ -777,7 +1019,7 @@ export default function CheckoutPage() {
                   <span>100% Encrypted Payment via Razorpay Test Gateway</span>
                 </p>
               )}
-              <p>Pan-India Free Doorstep Delivery &bull; 1-Year Comprehensive Warranty</p>
+              <p>Pan-India Free Doorstep Delivery &bull; 3-Year Comprehensive Warranty</p>
             </div>
           </div>
         </div>

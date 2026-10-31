@@ -98,6 +98,10 @@ export interface CartItem {
 }
 
 export interface UserAddress {
+  _id?: string;
+  fullName?: string;
+  phone?: string;
+  houseNumber?: string;
   street: string;
   landmark?: string;
   city: string;

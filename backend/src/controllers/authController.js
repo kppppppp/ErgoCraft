@@ -1,11 +1,13 @@
 import crypto from 'crypto';
 import { User } from '../models/User.js';
+import { Setting } from '../models/Setting.js';
 import { ApiError } from '../utils/apiError.js';
 import { ApiResponse } from '../utils/apiResponse.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import { generateToken, sendTokenCookie, clearTokenCookie } from '../utils/token.js';
 import { emailService } from '../services/emailService.js';
 import { config } from '../config/env.js';
+import { checkDeliveryServiceability, DEFAULT_RESTRICTED_STATES } from '../utils/deliveryService.js';
 
 export const register = asyncHandler(async (req, res) => {
   const { name, email, password, phone } = req.body;
@@ -225,4 +227,162 @@ export const resetPassword = asyncHandler(async (req, res) => {
   sendTokenCookie(res, sessionToken);
 
   res.status(200).json(new ApiResponse(200, null, 'Password reset successful. You are now logged in.'));
+});
+
+export const addAddress = asyncHandler(async (req, res) => {
+  const {
+    fullName,
+    phone,
+    houseNumber,
+    street,
+    landmark,
+    city,
+    state,
+    postalCode,
+    country = 'India',
+    isDefault = false,
+  } = req.body;
+
+  if (!street || !city || !state || !postalCode) {
+    throw new ApiError(400, 'Please provide street, city, state, and 6-digit postal code');
+  }
+
+  const setting = await Setting.findOne({ key: 'store_settings' });
+  const restrictionsEnabled = setting?.deliveryRestrictions?.enabled ?? true;
+  const restrictedStates = setting?.deliveryRestrictions?.restrictedStates ?? DEFAULT_RESTRICTED_STATES;
+
+  const serviceCheck = checkDeliveryServiceability(state, postalCode, {
+    restrictedStates,
+    restrictionsEnabled,
+  });
+
+  if (serviceCheck.error === 'PIN_MISMATCH' || serviceCheck.error === 'INVALID_STATE') {
+    throw new ApiError(400, serviceCheck.message);
+  }
+
+  const newAddress = {
+    fullName: fullName?.trim() || req.user.name,
+    phone: phone?.trim() || req.user.phone || '',
+    houseNumber: houseNumber?.trim() || '',
+    street: street.trim(),
+    landmark: landmark?.trim() || '',
+    city: city.trim(),
+    state: serviceCheck.state,
+    postalCode: serviceCheck.postalCode,
+    country: country.trim() || 'India',
+    isDefault: Boolean(isDefault || req.user.addresses.length === 0),
+  };
+
+  if (newAddress.isDefault) {
+    req.user.addresses.forEach((addr) => {
+      addr.isDefault = false;
+    });
+  }
+
+  req.user.addresses.push(newAddress);
+  await req.user.save();
+
+  res.status(201).json(
+    new ApiResponse(
+      201,
+      {
+        address: req.user.addresses[req.user.addresses.length - 1],
+        addresses: req.user.addresses,
+        serviceable: serviceCheck.serviceable,
+        serviceCheck,
+      },
+      serviceCheck.serviceable
+        ? 'Address added successfully'
+        : 'Sorry! ErgoCraft currently does not offer delivery services to your location.'
+    )
+  );
+});
+
+export const updateAddress = asyncHandler(async (req, res) => {
+  const { addressId } = req.params;
+  const {
+    fullName,
+    phone,
+    houseNumber,
+    street,
+    landmark,
+    city,
+    state,
+    postalCode,
+    country,
+    isDefault,
+  } = req.body;
+
+  const address = req.user.addresses.id(addressId);
+  if (!address) {
+    throw new ApiError(404, 'Address not found');
+  }
+
+  const nextState = state || address.state;
+  const nextPin = postalCode || address.postalCode;
+
+  const setting = await Setting.findOne({ key: 'store_settings' });
+  const restrictionsEnabled = setting?.deliveryRestrictions?.enabled ?? true;
+  const restrictedStates = setting?.deliveryRestrictions?.restrictedStates ?? DEFAULT_RESTRICTED_STATES;
+
+  const serviceCheck = checkDeliveryServiceability(nextState, nextPin, {
+    restrictedStates,
+    restrictionsEnabled,
+  });
+
+  if (serviceCheck.error === 'PIN_MISMATCH' || serviceCheck.error === 'INVALID_STATE') {
+    throw new ApiError(400, serviceCheck.message);
+  }
+
+  if (fullName !== undefined) address.fullName = fullName.trim();
+  if (phone !== undefined) address.phone = phone.trim();
+  if (houseNumber !== undefined) address.houseNumber = houseNumber.trim();
+  if (street !== undefined) address.street = street.trim();
+  if (landmark !== undefined) address.landmark = landmark.trim();
+  if (city !== undefined) address.city = city.trim();
+  address.state = serviceCheck.state;
+  address.postalCode = serviceCheck.postalCode;
+  if (country !== undefined) address.country = country.trim();
+
+  if (isDefault) {
+    req.user.addresses.forEach((addr) => {
+      addr.isDefault = addr._id.toString() === addressId;
+    });
+  }
+
+  await req.user.save();
+
+  res.status(200).json(
+    new ApiResponse(
+      200,
+      {
+        address,
+        addresses: req.user.addresses,
+        serviceable: serviceCheck.serviceable,
+        serviceCheck,
+      },
+      serviceCheck.serviceable
+        ? 'Address updated successfully'
+        : 'Sorry! ErgoCraft currently does not offer delivery services to your location.'
+    )
+  );
+});
+
+export const deleteAddress = asyncHandler(async (req, res) => {
+  const { addressId } = req.params;
+  const address = req.user.addresses.id(addressId);
+  if (!address) {
+    throw new ApiError(404, 'Address not found');
+  }
+
+  req.user.addresses.pull({ _id: addressId });
+  if (address.isDefault && req.user.addresses.length > 0) {
+    req.user.addresses[0].isDefault = true;
+  }
+
+  await req.user.save();
+
+  res.status(200).json(
+    new ApiResponse(200, { addresses: req.user.addresses }, 'Address deleted successfully')
+  );
 });

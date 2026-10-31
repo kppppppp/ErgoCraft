@@ -281,6 +281,10 @@ test('Cash on Delivery (COD) & Admin Settings Suite', async (t) => {
   });
 
   t.after(async () => {
+    if (testProductId) await Product.findByIdAndDelete(testProductId);
+    await Product.deleteMany({ name: { $regex: 'ErgoCOD', $options: 'i' } });
+    await Category.deleteMany({ slug: { $in: ['cod-chairs', 'cod-test-chairs'] } });
+    await User.deleteMany({ email: { $regex: 'cod.test' } });
     server.close();
     await closeDB();
   });
