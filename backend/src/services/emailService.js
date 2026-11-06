@@ -102,9 +102,19 @@ class EmailService {
       adminBase = 'https://ergo-craft-qedw.vercel.app';
     }
     const adminUrl = adminBase ? `${adminBase}/orders?id=${encodeURIComponent(order._id)}` : '';
-    const subject = `New confirmed order ${order.orderNumber} — Ergocraft`;
+    const subject = order.gstDetails?.gstin 
+      ? `[GST INVOICE] New confirmed order ${order.orderNumber} — Ergocraft`
+      : `New confirmed order ${order.orderNumber} — Ergocraft`;
     const textContent = [
-      `Order ${order.orderNumber} (${date})`, `Customer: ${order.customerDetails?.name || ''}`,
+      `Order ${order.orderNumber} (${date})`,
+      ...(order.gstDetails?.gstin ? [
+        `\n--- GST TAX INVOICE REQUESTED ---`,
+        `Customer GSTIN: ${order.gstDetails.gstin}`,
+        `Business Name: ${order.gstDetails.businessName || order.customerDetails?.name || ''}`,
+        ...(order.gstDetails.businessAddress ? [`Business Address: ${order.gstDetails.businessAddress}`] : []),
+        `---------------------------------\n`,
+      ] : []),
+      `Customer: ${order.customerDetails?.name || ''}`,
       `Email: ${order.customerDetails?.email || ''}`, `Phone: ${order.customerDetails?.phone || ''}`,
       `Shipping: ${shipping}`, ...(order.items || []).map((item) => `${item.name} × ${item.quantity}: ${money(item.subtotal)}`),
       `Subtotal: ${money(order.pricing?.subtotal)}`, `Discount: ${money(order.pricing?.discount)}`,
@@ -112,7 +122,31 @@ class EmailService {
       `Razorpay reference: ${order.paymentDetails?.paymentId || 'Not applicable'}`,
       ...(adminUrl ? [`Admin: ${adminUrl}`] : []),
     ].join('\n');
-    const htmlContent = `<div style="font-family:Arial,sans-serif;color:#292a25;max-width:680px;margin:auto"><h1 style="color:#35443a">New confirmed order</h1><p><strong>${escapeHtml(order.orderNumber)}</strong> · ${escapeHtml(date)}</p><h2>Customer</h2><p>${escapeHtml(order.customerDetails?.name)}<br>${escapeHtml(order.customerDetails?.email)}<br>${escapeHtml(order.customerDetails?.phone)}</p><h2>Ship to</h2><p>${shipping}</p><table style="width:100%;border-collapse:collapse"><thead><tr><th align="left">Product</th><th>Qty</th><th align="right">Unit</th><th align="right">Subtotal</th></tr></thead><tbody>${items}</tbody></table><p>Subtotal: ${money(order.pricing?.subtotal)}<br>Discount: ${money(order.pricing?.discount)}<br><strong>Total: ${money(order.pricing?.total)}</strong></p><p>Payment status: ${escapeHtml(order.paymentStatus)}<br>Razorpay reference: ${escapeHtml(order.paymentDetails?.paymentId || 'Not applicable')}</p>${adminUrl ? `<p><a href="${escapeHtml(adminUrl)}">View order in admin</a></p>` : ''}</div>`;
+    const htmlContent = `<div style="font-family:Arial,sans-serif;color:#292a25;max-width:680px;margin:auto">
+      <h1 style="color:#35443a">New confirmed order</h1>
+      <p><strong>${escapeHtml(order.orderNumber)}</strong> · ${escapeHtml(date)}</p>
+      ${order.gstDetails?.gstin ? `
+        <div style="background-color:#FAF8F5;border:2px solid #C5A880;padding:14px 18px;border-radius:6px;margin:16px 0;">
+          <h3 style="margin:0 0 8px 0;color:#9A6B3A;font-size:14px;text-transform:uppercase;letter-spacing:1px;font-weight:bold;">GST Tax Invoice Details</h3>
+          <p style="margin:0;font-size:13px;line-height:1.6;color:#1E1B18;">
+            <strong>Customer GSTIN:</strong> <span style="font-family:monospace;font-size:14px;font-weight:bold;background:#F0EDE4;padding:2px 6px;border-radius:4px;color:#13231D;">${escapeHtml(order.gstDetails.gstin)}</span><br>
+            <strong>Registered Business Name:</strong> ${escapeHtml(order.gstDetails.businessName || order.customerDetails?.name)}
+            ${order.gstDetails.businessAddress ? `<br><strong>Business Address:</strong> ${escapeHtml(order.gstDetails.businessAddress)}` : ''}
+          </p>
+        </div>
+      ` : ''}
+      <h2>Customer</h2>
+      <p>${escapeHtml(order.customerDetails?.name)}<br>${escapeHtml(order.customerDetails?.email)}<br>${escapeHtml(order.customerDetails?.phone)}</p>
+      <h2>Ship to</h2>
+      <p>${shipping}</p>
+      <table style="width:100%;border-collapse:collapse">
+        <thead><tr><th align="left">Product</th><th>Qty</th><th align="right">Unit</th><th align="right">Subtotal</th></tr></thead>
+        <tbody>${items}</tbody>
+      </table>
+      <p>Subtotal: ${money(order.pricing?.subtotal)}<br>Discount: ${money(order.pricing?.discount)}<br><strong>Total: ${money(order.pricing?.total)}</strong></p>
+      <p>Payment status: ${escapeHtml(order.paymentStatus)}<br>Razorpay reference: ${escapeHtml(order.paymentDetails?.paymentId || 'Not applicable')}</p>
+      ${adminUrl ? `<p><a href="${escapeHtml(adminUrl)}">View order in admin</a></p>` : ''}
+    </div>`;
     return this.sendEmail({ to: recipient, subject, htmlContent, textContent });
   }
 
@@ -216,6 +250,15 @@ class EmailService {
             ${order.shippingAddress.street}, ${order.shippingAddress.city}, ${order.shippingAddress.state} - ${order.shippingAddress.postalCode}<br>
             Phone: ${order.customerDetails.phone}
           </div>
+          ${order.gstDetails?.gstin ? `
+            <div style="background-color: #FAF8F5; border: 1px solid #C5A880; padding: 14px 16px; border-radius: 4px; margin-top: 14px; font-size: 13px; color: #1E1B18;">
+              <strong style="color: #9A6B3A; text-transform: uppercase; letter-spacing: 0.5px;">GST Tax Invoice Bill Details:</strong><br>
+              <strong>GSTIN:</strong> <span style="font-family: monospace; font-weight: bold;">${order.gstDetails.gstin}</span><br>
+              <strong>Business Name:</strong> ${order.gstDetails.businessName || order.customerDetails.name}
+              ${order.gstDetails.businessAddress ? `<br><strong>Address:</strong> ${order.gstDetails.businessAddress}` : ''}
+              <div style="font-size: 11px; color: #78716C; margin-top: 6px;">A formal GST tax invoice with these details is generated for this order.</div>
+            </div>
+          ` : ''}
         </div>
         <div style="text-align: center; margin-top: 24px; font-size: 12px; color: #A8A29E;">
           &copy; ${new Date().getFullYear()} Ergocraft Seating Pvt. Ltd. | Crafting comfort for elevated living.

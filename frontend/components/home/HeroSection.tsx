@@ -255,8 +255,7 @@ export const HeroSection: React.FC = () => {
   return (
     <section
       ref={containerRef}
-      className="relative w-full overflow-hidden bg-[#0C1512] text-white select-none focus:outline-none"
-      style={{ height: 'clamp(520px, 72vh, 680px)', minHeight: 'clamp(520px, 72vh, 680px)' }}
+      className="relative w-full overflow-hidden bg-[#0C1512] text-white select-none focus:outline-none aspect-[16/10] xs:aspect-[16/9.5] sm:aspect-auto sm:h-[clamp(520px,72vh,680px)] sm:min-h-[clamp(520px,72vh,680px)]"
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
       onTouchStart={handleTouchStart}
@@ -288,6 +287,7 @@ export const HeroSection: React.FC = () => {
             >
               {/* Background Image Container with cover & subject positioning */}
               <div className="absolute inset-0 w-full h-full">
+                {/* Mobile View Image: object-contain to guarantee entire image is 100% visible */}
                 <Image
                   src={slide.image}
                   alt={slide.alt}
@@ -295,7 +295,18 @@ export const HeroSection: React.FC = () => {
                   priority={index === 0}
                   sizes="100vw"
                   quality={90}
-                  className="object-cover transition-opacity duration-500"
+                  className="sm:hidden object-contain object-center transition-opacity duration-500"
+                />
+
+                {/* Desktop View Image: object-cover with fine subject positioning */}
+                <Image
+                  src={slide.image}
+                  alt={slide.alt}
+                  fill
+                  priority={index === 0}
+                  sizes="100vw"
+                  quality={90}
+                  className="hidden sm:block object-cover transition-opacity duration-500"
                   style={{
                     objectPosition: slide.objectPositionDesktop,
                   }}
@@ -311,12 +322,12 @@ export const HeroSection: React.FC = () => {
                   }}
                 />
 
-                {/* Mobile: Gradient from bottom and left to keep headline readable over furniture */}
+                {/* Mobile: Gentle horizontal gradient to keep left text readable while showing full chairs */}
                 <div
                   className="absolute inset-0 sm:hidden pointer-events-none"
                   style={{
                     background:
-                      'linear-gradient(180deg, rgba(10,18,15,0.30) 0%, rgba(10,18,15,0.68) 42%, rgba(10,18,15,0.94) 100%)',
+                      'linear-gradient(90deg, rgba(10,18,15,0.88) 0%, rgba(10,18,15,0.55) 50%, rgba(10,18,15,0.15) 80%, transparent 100%)',
                   }}
                 />
 
@@ -326,25 +337,25 @@ export const HeroSection: React.FC = () => {
 
               {/* Text & Action Content Block (Left ~45% on desktop) */}
               <div className="relative z-10 h-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center">
-                <div className="w-full sm:max-w-lg lg:max-w-xl xl:max-w-[580px] pt-4 pb-20 sm:pb-0 sm:pt-4">
+                <div className="w-full sm:max-w-lg lg:max-w-xl xl:max-w-[580px] pt-2 pb-6 xs:pb-8 sm:pb-0 sm:pt-4">
                   {/* Understated collection identifier & fine warm gold rule */}
                   <div
-                    className={`flex items-center gap-2.5 sm:gap-3.5 mb-3.5 sm:mb-6 transition-all duration-700 delay-75 ${
+                    className={`flex items-center gap-2 sm:gap-3.5 mb-1.5 xs:mb-2.5 sm:mb-6 transition-all duration-700 delay-75 ${
                       isActive ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-3'
                     }`}
                   >
-                    <span className="text-[10px] sm:text-[11px] font-mono tracking-[0.25em] text-[#C5A880] uppercase font-bold shrink-0">
+                    <span className="text-[8px] xs:text-[10px] sm:text-[11px] font-mono tracking-[0.2em] sm:tracking-[0.25em] text-[#C5A880] uppercase font-bold shrink-0">
                       {slide.edition}
                     </span>
-                    <span className="w-6 sm:w-12 h-[1px] bg-[#C5A880]/70 shrink-0" />
-                    <span className="text-[9px] xs:text-[10px] sm:text-[11px] font-medium tracking-[0.20em] text-white/80 uppercase truncate">
+                    <span className="w-4 sm:w-12 h-[1px] bg-[#C5A880]/70 shrink-0" />
+                    <span className="text-[8px] xs:text-[9px] sm:text-[11px] font-medium tracking-[0.15em] sm:tracking-[0.20em] text-white/80 uppercase truncate">
                       {slide.editorialLabel}
                     </span>
                   </div>
 
                   {/* Expressive Two-Line Editorial Headline with Roman + Italic Contrast */}
                   <h1
-                    className={`font-serif-luxury text-[32px] xs:text-4xl sm:text-5xl md:text-6xl lg:text-[62px] xl:text-[68px] font-normal text-white tracking-tight leading-[1.05] mb-3 sm:mb-5 transition-all duration-700 delay-150 ${
+                    className={`font-serif-luxury text-[17px] xs:text-[21px] sm:text-5xl md:text-6xl lg:text-[62px] xl:text-[68px] font-normal text-white tracking-tight leading-[1.1] sm:leading-[1.05] mb-1.5 xs:mb-2.5 sm:mb-5 transition-all duration-700 delay-150 ${
                       isActive ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-3'
                     }`}
                   >
@@ -356,7 +367,7 @@ export const HeroSection: React.FC = () => {
 
                   {/* Concise Supporting Line with restrained width */}
                   <p
-                    className={`text-xs xs:text-sm sm:text-base md:text-[17px] text-white/80 font-light leading-relaxed mb-5 sm:mb-9 max-w-md transition-all duration-700 delay-200 ${
+                    className={`hidden xs:block text-[10px] xs:text-[12px] sm:text-base md:text-[17px] text-white/80 font-light leading-snug sm:leading-relaxed mb-2 xs:mb-3.5 sm:mb-9 max-w-[260px] xs:max-w-xs sm:max-w-md line-clamp-2 sm:line-clamp-none transition-all duration-700 delay-200 ${
                       isActive ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-3'
                     }`}
                   >
@@ -365,25 +376,25 @@ export const HeroSection: React.FC = () => {
 
                   {/* Action Group: Strong Primary CTA + Quieter Secondary Link */}
                   <div
-                    className={`flex flex-wrap items-center gap-3 sm:gap-6 transition-all duration-700 delay-250 ${
+                    className={`flex flex-wrap items-center gap-2 xs:gap-3 sm:gap-6 transition-all duration-700 delay-250 ${
                       isActive ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
                     }`}
                   >
                     <Link
                       href={slide.primaryCtaHref}
-                      className="px-5 sm:px-8 py-3 sm:py-4 rounded-xl bg-[#78836A] hover:bg-[#59644E] text-white text-xs sm:text-sm font-semibold tracking-wider uppercase transition-all duration-300 flex items-center gap-2 shadow-xl shadow-black/35 hover:shadow-2xl hover:-translate-y-0.5 cursor-pointer group"
+                      className="px-3.5 py-1.5 xs:px-4 xs:py-2 sm:px-8 sm:py-4 rounded-lg sm:rounded-xl bg-[#78836A] hover:bg-[#59644E] text-white text-[10px] xs:text-xs sm:text-sm font-semibold tracking-wider uppercase transition-all duration-300 flex items-center gap-1.5 sm:gap-2 shadow-lg sm:shadow-xl shadow-black/35 hover:shadow-2xl hover:-translate-y-0.5 cursor-pointer group"
                     >
                       <span>{slide.primaryCtaText}</span>
                       <ArrowRight
-                        size={15}
-                        className="group-hover:translate-x-1.5 transition-transform duration-300 shrink-0"
+                        size={13}
+                        className="group-hover:translate-x-1.5 transition-transform duration-300 shrink-0 sm:w-[15px] sm:h-[15px]"
                       />
                     </Link>
 
                     {slide.secondaryCtaText && slide.secondaryCtaHref && (
                       <Link
                         href={slide.secondaryCtaHref}
-                        className="hidden xs:inline-flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm text-white/85 hover:text-[#C5A880] font-medium tracking-wide transition-colors py-2 group cursor-pointer"
+                        className="hidden sm:inline-flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm text-white/85 hover:text-[#C5A880] font-medium tracking-wide transition-colors py-2 group cursor-pointer"
                       >
                         <span className="border-b border-white/30 group-hover:border-[#C5A880] pb-0.5 transition-colors">
                           {slide.secondaryCtaText}
@@ -395,7 +406,7 @@ export const HeroSection: React.FC = () => {
 
                   {/* Refined Integrated Slide Indicator: 01 / 04 */}
                   <div
-                    className={`flex items-center gap-3 pt-6 sm:pt-8 text-xs font-mono tracking-widest text-white/50 transition-all duration-700 delay-300 ${
+                    className={`hidden sm:flex items-center gap-3 pt-6 sm:pt-8 text-xs font-mono tracking-widest text-white/50 transition-all duration-700 delay-300 ${
                       isActive ? 'opacity-100' : 'opacity-0'
                     }`}
                   >
@@ -441,24 +452,24 @@ export const HeroSection: React.FC = () => {
       </button>
 
       {/* Bottom Category Slide Indicators with Smooth Progress Fill */}
-      <div className="absolute bottom-5 sm:bottom-7 left-0 right-0 z-20 pointer-events-none">
+      <div className="absolute bottom-2.5 sm:bottom-7 left-0 right-0 z-20 pointer-events-none">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
           {/* Slide Indicator Pills */}
-          <div className="flex items-center gap-2 sm:gap-3 pointer-events-auto">
+          <div className="flex items-center gap-1.5 sm:gap-3 pointer-events-auto">
             {HERO_SLIDES.map((slide, index) => {
               const isActive = index === currentIndex;
               return (
                 <button
                   key={slide.id}
                   onClick={() => goToSlide(index)}
-                  className={`group relative text-left py-1.5 px-3 rounded-lg border transition-all duration-300 cursor-pointer flex items-center gap-1.5 ${
+                  className={`group relative text-left py-1 px-2 sm:py-1.5 sm:px-3 rounded-md sm:rounded-lg border transition-all duration-300 cursor-pointer flex items-center gap-1 sm:gap-1.5 ${
                     isActive
-                      ? 'bg-black/60 border-[#C5A880]/60 text-white shadow-md'
-                      : 'bg-black/25 border-white/10 text-white/60 hover:text-white hover:border-white/25'
+                      ? 'bg-black/70 border-[#C5A880]/60 text-white shadow-md'
+                      : 'bg-black/35 border-white/10 text-white/60 hover:text-white hover:border-white/25'
                   }`}
                   aria-label={`Slide ${index + 1}: ${slide.categoryTag}`}
                 >
-                  <span className="text-[10px] font-mono font-bold text-[#C5A880]">
+                  <span className="text-[9px] sm:text-[10px] font-mono font-bold text-[#C5A880]">
                     0{index + 1}
                   </span>
                   <span className="hidden sm:inline text-[11px] font-medium tracking-wide">
@@ -489,26 +500,26 @@ export const HeroSection: React.FC = () => {
         </div>
       </div>
 
-      {/* Floating Quick Action Buttons: Buy On Phone & Need Help? (Repositioned to bottom-24 to avoid obscuring Next Slide button) */}
+      {/* Floating Quick Action Buttons: Buy On Phone & Need Help? */}
       <aside
         aria-label="Quick order and support actions"
-        className="absolute right-0 bottom-20 xs:bottom-24 sm:bottom-28 z-30 flex flex-col gap-1.5 sm:gap-2 select-none"
+        className="absolute right-0 bottom-10 xs:bottom-12 sm:bottom-28 z-30 flex flex-col gap-1 sm:gap-2 select-none"
       >
         {/* Card 1: Buy On Phone */}
         <a
           href="https://wa.me/919768001999?text=Hi%20ErgoCraft,%20I%20would%20like%20to%20order%20furniture%20on%20phone"
           target="_blank"
           rel="noopener noreferrer"
-          className="group flex flex-col items-center justify-center bg-white/95 hover:bg-white text-center py-2 px-1.5 xs:py-2.5 xs:px-2.5 sm:py-3 sm:px-3 w-[56px] xs:w-[68px] sm:w-[78px] rounded-l-2xl shadow-xl hover:shadow-2xl border-l border-y border-black/10 hover:border-black/20 hover:-translate-x-1 transition-all duration-200 cursor-pointer backdrop-blur-sm"
+          className="group flex flex-col items-center justify-center bg-white/95 hover:bg-white text-center py-1.5 px-1 xs:py-2 xs:px-2 sm:py-3 sm:px-3 w-[46px] xs:w-[58px] sm:w-[78px] rounded-l-xl sm:rounded-l-2xl shadow-xl hover:shadow-2xl border-l border-y border-black/10 hover:border-black/20 hover:-translate-x-1 transition-all duration-200 cursor-pointer backdrop-blur-sm"
           aria-label="Buy On Phone via WhatsApp at +91 97680 01999"
         >
-          <div className="w-6 h-6 xs:w-8 xs:h-8 rounded-full bg-teal-50 flex items-center justify-center text-[#0D766E] group-hover:scale-110 transition-transform">
-            <Smartphone size={15} strokeWidth={2.2} className="xs:w-[18px] xs:h-[18px]" />
+          <div className="w-5 h-5 xs:w-7 xs:h-7 sm:w-8 sm:h-8 rounded-full bg-teal-50 flex items-center justify-center text-[#0D766E] group-hover:scale-110 transition-transform">
+            <Smartphone size={13} strokeWidth={2.2} className="xs:w-[16px] xs:h-[16px] sm:w-[18px] sm:h-[18px]" />
           </div>
-          <span className="text-[9px] xs:text-[10px] sm:text-[11px] font-medium text-[#20251F] leading-tight mt-1">
+          <span className="text-[8px] xs:text-[9px] sm:text-[11px] font-medium text-[#20251F] leading-tight mt-0.5 sm:mt-1">
             Buy On
           </span>
-          <span className="text-[10px] xs:text-[11px] sm:text-xs font-bold text-[#0D766E] leading-tight">
+          <span className="text-[9px] xs:text-[10px] sm:text-xs font-bold text-[#0D766E] leading-tight">
             Phone
           </span>
         </a>
@@ -518,16 +529,16 @@ export const HeroSection: React.FC = () => {
           href="https://wa.me/919768001999?text=Hi%20ErgoCraft,%20I%20need%20help%20choosing%20the%20right%20seating"
           target="_blank"
           rel="noopener noreferrer"
-          className="group flex flex-col items-center justify-center bg-white/95 hover:bg-white text-center py-2 px-1.5 xs:py-2.5 xs:px-2.5 sm:py-3 sm:px-3 w-[56px] xs:w-[68px] sm:w-[78px] rounded-l-2xl shadow-xl hover:shadow-2xl border-l border-y border-black/10 hover:border-black/20 hover:-translate-x-1 transition-all duration-200 cursor-pointer backdrop-blur-sm"
+          className="group flex flex-col items-center justify-center bg-white/95 hover:bg-white text-center py-1.5 px-1 xs:py-2 xs:px-2 sm:py-3 sm:px-3 w-[46px] xs:w-[58px] sm:w-[78px] rounded-l-xl sm:rounded-l-2xl shadow-xl hover:shadow-2xl border-l border-y border-black/10 hover:border-black/20 hover:-translate-x-1 transition-all duration-200 cursor-pointer backdrop-blur-sm"
           aria-label="Need Help? Contact WhatsApp Support at +91 97680 01999"
         >
-          <div className="w-6 h-6 xs:w-8 xs:h-8 rounded-full bg-teal-50 flex items-center justify-center text-[#0D766E] group-hover:scale-110 transition-transform">
-            <Headset size={15} strokeWidth={2.2} className="xs:w-[18px] xs:h-[18px]" />
+          <div className="w-5 h-5 xs:w-7 xs:h-7 sm:w-8 sm:h-8 rounded-full bg-teal-50 flex items-center justify-center text-[#0D766E] group-hover:scale-110 transition-transform">
+            <Headset size={13} strokeWidth={2.2} className="xs:w-[16px] xs:h-[16px] sm:w-[18px] sm:h-[18px]" />
           </div>
-          <span className="text-[9px] xs:text-[10px] sm:text-[11px] font-medium text-[#20251F] leading-tight mt-1">
+          <span className="text-[8px] xs:text-[9px] sm:text-[11px] font-medium text-[#20251F] leading-tight mt-0.5 sm:mt-1">
             Need
           </span>
-          <span className="text-[10px] xs:text-[11px] sm:text-xs font-bold text-[#0D766E] leading-tight">
+          <span className="text-[9px] xs:text-[10px] sm:text-xs font-bold text-[#0D766E] leading-tight">
             Help?
           </span>
         </a>

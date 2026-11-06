@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../../lib/auth';
 import { fetchApi } from '../../lib/api';
+import { printInvoice } from '../../lib/invoice';
 import {
   ShoppingBag,
   LogOut,
@@ -21,6 +22,8 @@ import {
   Sparkles,
   Loader2,
   X,
+  Printer,
+  Building2,
 } from 'lucide-react';
 
 const ALL_INDIAN_STATES = [
@@ -92,6 +95,17 @@ interface OrderData {
     state: string;
     postalCode: string;
     country: string;
+  };
+  customerDetails?: {
+    name: string;
+    email: string;
+    phone: string;
+  };
+  gstDetails?: {
+    hasGst?: boolean;
+    gstin?: string;
+    businessName?: string;
+    businessAddress?: string;
   };
   tracking?: {
     courier?: string;
@@ -452,11 +466,37 @@ function AccountContent() {
                       </div>
                     )}
 
-                    {/* Footer Totals */}
-                    <div className="pt-3 border-t border-[#E8E5DE] flex justify-between items-center text-xs">
-                      <span className="text-[#73756F]">
-                        Shipping Destination: {order.shippingAddress.city}, {order.shippingAddress.state}
-                      </span>
+                    {/* GST Details Strip if Present */}
+                    {order.gstDetails?.gstin && (
+                      <div className="p-2.5 px-3 rounded-xl bg-amber-50/80 border border-amber-200 text-xs text-amber-900 flex items-center justify-between">
+                        <span className="flex items-center gap-1.5 font-semibold">
+                          <Building2 size={14} className="text-amber-700" />
+                          <span>
+                            GSTIN: <strong className="font-mono">{order.gstDetails.gstin}</strong>
+                            {order.gstDetails.businessName ? ` (${order.gstDetails.businessName})` : ''}
+                          </span>
+                        </span>
+                        <span className="text-[10px] uppercase font-bold text-amber-800 bg-amber-100 px-2 py-0.5 rounded border border-amber-300">
+                          B2B Tax Invoice
+                        </span>
+                      </div>
+                    )}
+
+                    {/* Footer Totals & Download Bill Action */}
+                    <div className="pt-3 border-t border-[#E8E5DE] flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+                      <div className="flex items-center gap-3">
+                        <span className="text-[#73756F]">
+                          Shipping Destination: {order.shippingAddress.city}, {order.shippingAddress.state}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => printInvoice(order)}
+                          className="px-3 py-1 rounded-lg border border-[#E8E5DE] bg-[#FAF8F5] hover:bg-[#78836A] hover:text-white text-[#13231D] text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer"
+                        >
+                          <Printer size={13} />
+                          <span>Print Bill / Invoice</span>
+                        </button>
+                      </div>
                       <div className="text-sm font-bold text-[#13231D]">
                         Total: <span className="text-[#78836A]">₹{order.pricing.total.toLocaleString('en-IN')}</span>
                       </div>

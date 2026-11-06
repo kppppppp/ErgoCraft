@@ -58,6 +58,12 @@ const orderSchema = new mongoose.Schema(
       email: { type: String, required: true },
       phone: { type: String, required: true },
     },
+    gstDetails: {
+      hasGst: { type: Boolean, default: false },
+      gstin: { type: String, default: '', trim: true },
+      businessName: { type: String, default: '', trim: true },
+      businessAddress: { type: String, default: '', trim: true },
+    },
     shippingAddress: {
       fullName: { type: String },
       phone: { type: String },

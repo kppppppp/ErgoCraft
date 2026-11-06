@@ -3,6 +3,7 @@
 import React, { useCallback, useEffect, useRef, useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { fetchApi } from '../../lib/api';
+import { printInvoice } from '../../lib/invoice';
 import {
   Search,
   ShoppingBag,
@@ -12,6 +13,8 @@ import {
   Eye,
   X,
   Send,
+  Printer,
+  Building2,
 } from 'lucide-react';
 
 interface OrderItem {
@@ -28,6 +31,12 @@ interface OrderItem {
     state: string;
     postalCode: string;
     country: string;
+  };
+  gstDetails?: {
+    hasGst?: boolean;
+    gstin?: string;
+    businessName?: string;
+    businessAddress?: string;
   };
   items: Array<{
     name: string;
@@ -399,7 +408,14 @@ function OrdersContent() {
                 {orders.map((o) => (
                   <tr key={o._id} className="hover:bg-gray-50/80 transition-colors">
                     <td className="py-3.5 px-5 font-mono text-xs font-bold text-[#1E1B18]">
-                      {o.orderNumber}
+                      <div className="flex items-center gap-1.5">
+                        <span>{o.orderNumber}</span>
+                        {o.gstDetails?.gstin && (
+                          <span className="px-1.5 py-0.2 rounded text-[9px] font-bold uppercase bg-amber-100 text-amber-900 border border-amber-300">
+                            GST
+                          </span>
+                        )}
+                      </div>
                     </td>
                     <td className="py-3.5 px-5 text-xs text-[#78716C]">
                       {new Date(o.createdAt).toLocaleDateString('en-IN', {
@@ -480,25 +496,69 @@ function OrdersContent() {
             {/* Header (Pinned / Sticky at Top) */}
             <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 bg-white shrink-0 z-10">
               <div>
-                <h3 id="order-modal-title" className="text-lg font-serif font-bold text-[#1E1B18]">
-                  Order #{selectedOrder.orderNumber}
-                </h3>
+                <div className="flex items-center gap-2">
+                  <h3 id="order-modal-title" className="text-lg font-serif font-bold text-[#1E1B18]">
+                    Order #{selectedOrder.orderNumber}
+                  </h3>
+                  {selectedOrder.gstDetails?.gstin && (
+                    <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-amber-100 text-amber-900 border border-amber-300">
+                      GST B2B Bill
+                    </span>
+                  )}
+                </div>
                 <span className="text-xs text-[#78716C]">
                   Placed on {new Date(selectedOrder.createdAt).toLocaleString('en-IN')}
                 </span>
               </div>
-              <button
-                type="button"
-                onClick={handleCloseModal}
-                aria-label="Close order details"
-                className="text-gray-400 hover:text-gray-700 active:text-gray-900 p-2 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#667151]"
-              >
-                <X size={20} />
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => printInvoice(selectedOrder)}
+                  className="px-3 py-1.5 rounded-lg bg-[#FAF8F5] border border-[#E8E2D9] text-[#667151] hover:bg-[#667151] hover:text-white text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer"
+                >
+                  <Printer size={13} />
+                  <span>Print Tax Bill</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={handleCloseModal}
+                  aria-label="Close order details"
+                  className="text-gray-400 hover:text-gray-700 active:text-gray-900 p-2 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#667151]"
+                >
+                  <X size={20} />
+                </button>
+              </div>
             </div>
 
             {/* Scrollable Content Region */}
             <div className="flex-1 min-h-0 overflow-y-auto p-6 space-y-6">
+              {/* GST Tax Invoice Highlight if Present */}
+              {selectedOrder.gstDetails?.gstin && (
+                <div className="p-4 bg-amber-50/80 rounded-lg border border-amber-200 text-xs text-amber-900 flex items-start gap-3">
+                  <Building2 size={18} className="text-amber-700 shrink-0 mt-0.5" />
+                  <div className="space-y-1">
+                    <h4 className="font-bold text-sm text-amber-950 uppercase tracking-wide">
+                      Customer GST Tax Invoice Information
+                    </h4>
+                    <div>
+                      <strong>GSTIN:</strong>{' '}
+                      <span className="font-mono font-bold text-sm bg-amber-100/80 px-2 py-0.5 rounded border border-amber-300 text-amber-950">
+                        {selectedOrder.gstDetails.gstin}
+                      </span>
+                    </div>
+                    <div>
+                      <strong>Registered Business Name:</strong>{' '}
+                      {selectedOrder.gstDetails.businessName || selectedOrder.customerDetails.name}
+                    </div>
+                    {selectedOrder.gstDetails.businessAddress && (
+                      <div>
+                        <strong>Registered Address:</strong> {selectedOrder.gstDetails.businessAddress}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
               {/* Customer & Shipping Summary */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-[#FAF8F5] p-4 rounded-lg border border-[#E8E2D9] text-xs">
               <div>

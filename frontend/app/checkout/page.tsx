@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useCart } from '../../lib/cart';
 import { useAuth } from '../../lib/auth';
 import { fetchApi } from '../../lib/api';
+import { printInvoice } from '../../lib/invoice';
 import {
   Lock,
   CheckCircle2,
@@ -18,6 +19,9 @@ import {
   MapPin,
   Truck,
   Loader2,
+  Building2,
+  Printer,
+  FileText,
 } from 'lucide-react';
 
 const ALL_INDIAN_STATES = [
@@ -79,6 +83,12 @@ interface ConfirmedOrderItem {
 interface ConfirmedOrder {
   _id: string;
   orderNumber: string;
+  createdAt?: string | Date;
+  customerDetails?: {
+    name: string;
+    email: string;
+    phone: string;
+  };
   paymentStatus: string;
   paymentDetails?: { provider?: string; paymentId?: string };
   items: ConfirmedOrderItem[];
@@ -89,6 +99,7 @@ interface ConfirmedOrder {
     chairDiscountPercentage?: number;
     chairDiscountAmount?: number;
     discount?: number;
+    shippingCharges?: number;
     total: number;
   };
   shippingAddress: {
@@ -99,6 +110,12 @@ interface ConfirmedOrder {
     city: string;
     state: string;
     postalCode: string;
+  };
+  gstDetails?: {
+    hasGst?: boolean;
+    gstin?: string;
+    businessName?: string;
+    businessAddress?: string;
   };
 }
 
@@ -164,6 +181,12 @@ export default function CheckoutPage() {
   const [city, setCity] = useState('');
   const [state, setState] = useState('Maharashtra');
   const [postalCode, setPostalCode] = useState('');
+
+  // GST & Business Invoicing State
+  const [hasGst, setHasGst] = useState(false);
+  const [gstin, setGstin] = useState('');
+  const [businessName, setBusinessName] = useState('');
+  const [businessAddress, setBusinessAddress] = useState('');
 
   // Delivery Serviceability State
   const [checkingDelivery, setCheckingDelivery] = useState(false);
@@ -402,6 +425,21 @@ export default function CheckoutPage() {
             </span>
           </div>
 
+          {confirmedOrder.gstDetails?.gstin && (
+            <div className="pt-2 text-xs border-t border-[#E8E5DE] bg-amber-50/70 p-3 rounded-xl border border-amber-200 text-amber-900 flex items-start gap-2.5">
+              <Building2 size={16} className="text-amber-700 shrink-0 mt-0.5" />
+              <div>
+                <strong className="block text-[#13231D]">GST Tax Invoice Registered:</strong>
+                <span>GSTIN: <strong className="font-mono">{confirmedOrder.gstDetails.gstin}</strong></span>
+                {confirmedOrder.gstDetails.businessName && (
+                  <span className="block text-[11px] text-amber-800">
+                    Business Name: {confirmedOrder.gstDetails.businessName}
+                  </span>
+                )}
+              </div>
+            </div>
+          )}
+
           <div className="pt-2 text-xs text-[#73756F] border-t border-[#E8E5DE]">
             <p>
               <strong className="text-[#242620]">Shipping Destination:</strong>{' '}
@@ -412,16 +450,24 @@ export default function CheckoutPage() {
           </div>
         </div>
 
-        <div className="pt-4 flex flex-col sm:flex-row items-center justify-center gap-4">
+        <div className="pt-4 flex flex-col sm:flex-row items-center justify-center gap-3">
+          <button
+            type="button"
+            onClick={() => printInvoice(confirmedOrder)}
+            className="w-full sm:w-auto px-6 py-3 rounded-xl bg-[#78836A] hover:bg-[#59644E] text-white text-xs font-bold uppercase tracking-wider transition flex items-center justify-center gap-2 cursor-pointer shadow-md"
+          >
+            <Printer size={15} />
+            <span>Print / Download Tax Bill</span>
+          </button>
           <Link
             href="/products"
-            className="w-full sm:w-auto px-6 py-3 rounded-xl bg-[#13231D] text-white text-xs font-bold uppercase tracking-wider hover:bg-[#78836A] transition"
+            className="w-full sm:w-auto px-6 py-3 rounded-xl bg-[#13231D] text-white text-xs font-bold uppercase tracking-wider hover:bg-[#78836A] transition text-center"
           >
             Continue Shopping
           </Link>
           <Link
             href="/account"
-            className="w-full sm:w-auto px-6 py-3 rounded-xl border border-[#E8E5DE] bg-white text-[#242620] text-xs font-bold uppercase tracking-wider hover:bg-[#F7F5F0] transition"
+            className="w-full sm:w-auto px-6 py-3 rounded-xl border border-[#E8E5DE] bg-white text-[#242620] text-xs font-bold uppercase tracking-wider hover:bg-[#F7F5F0] transition text-center"
           >
             View in My Orders
           </Link>
@@ -447,6 +493,18 @@ export default function CheckoutPage() {
       return;
     }
 
+    const cleanGstin = gstin.trim().toUpperCase();
+    if (hasGst) {
+      if (!cleanGstin) {
+        setError('Please enter your 15-character GSTIN number or uncheck the GST option.');
+        return;
+      }
+      if (cleanGstin.length !== 15) {
+        setError('Invalid GSTIN: Indian GSTIN must be exactly 15 characters long (e.g. 27AAPFU0939F1ZV).');
+        return;
+      }
+    }
+
     setSubmitting(true);
 
     try {
@@ -465,6 +523,12 @@ export default function CheckoutPage() {
           postalCode: postalCode.trim(),
           country: 'India',
         },
+        gstDetails: hasGst && cleanGstin ? {
+          hasGst: true,
+          gstin: cleanGstin,
+          businessName: businessName.trim() || name.trim(),
+          businessAddress: businessAddress.trim(),
+        } : undefined,
         paymentMethod,
       };
 
@@ -785,13 +849,95 @@ export default function CheckoutPage() {
             </div>
           </div>
 
-          {/* Section 3: Select Payment Method */}
+          {/* Section 3: GST & Business Invoicing (Optional) */}
+          <div className="bg-white rounded-2xl border border-[#E8E5DE] p-6 space-y-4 shadow-xs">
+            <div className="flex items-center justify-between pb-3 border-b border-[#E8E5DE]">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-[#78836A] flex items-center gap-2">
+                <Building2 size={15} />
+                <span>3. GST & Business Invoicing (Optional)</span>
+              </h3>
+              <span className="text-[10px] text-[#73756F]">Step 3 of 4</span>
+            </div>
+
+            <label className="flex items-start gap-3 p-3.5 rounded-xl border border-[#E8E5DE] hover:border-gray-300 bg-[#FAF8F5]/60 cursor-pointer transition">
+              <input
+                type="checkbox"
+                checked={hasGst}
+                onChange={(e) => setHasGst(e.target.checked)}
+                className="w-4 h-4 mt-0.5 rounded text-[#78836A] accent-[#78836A] cursor-pointer"
+              />
+              <div className="text-xs">
+                <span className="font-semibold text-[#13231D] block">
+                  I have a GST number (Request B2B Tax Invoice)
+                </span>
+                <span className="text-[#73756F] text-[11px] block mt-0.5">
+                  Enter your GSTIN & registered company name to receive an official tax invoice bill for GST input tax credit.
+                </span>
+              </div>
+            </label>
+
+            {hasGst && (
+              <div className="space-y-4 pt-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-semibold text-[#242620] mb-1">
+                      GSTIN (15 Digits) *
+                    </label>
+                    <input
+                      type="text"
+                      maxLength={15}
+                      required={hasGst}
+                      value={gstin}
+                      onChange={(e) => setGstin(e.target.value.toUpperCase())}
+                      placeholder="e.g. 27AAPFU0939F1ZV"
+                      className="w-full px-3 py-2 text-xs font-mono uppercase rounded-xl border border-[#E8E5DE] bg-white text-[#242620] focus:outline-none focus:border-[#78836A] transition"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-[#242620] mb-1">
+                      Registered Business / Company Name
+                    </label>
+                    <input
+                      type="text"
+                      value={businessName}
+                      onChange={(e) => setBusinessName(e.target.value)}
+                      placeholder="e.g. Acme Studio Pvt Ltd"
+                      className="w-full px-3 py-2 text-xs rounded-xl border border-[#E8E5DE] bg-white text-[#242620] focus:outline-none focus:border-[#78836A] transition"
+                    />
+                  </div>
+
+                  <div className="sm:col-span-2">
+                    <label className="block text-xs font-semibold text-[#242620] mb-1">
+                      Registered Business Address (Optional)
+                    </label>
+                    <input
+                      type="text"
+                      value={businessAddress}
+                      onChange={(e) => setBusinessAddress(e.target.value)}
+                      placeholder="Leave blank to use delivery destination address"
+                      className="w-full px-3 py-2 text-xs rounded-xl border border-[#E8E5DE] bg-white text-[#242620] focus:outline-none focus:border-[#78836A] transition"
+                    />
+                  </div>
+                </div>
+
+                <div className="p-3 bg-amber-50/80 border border-amber-200/80 rounded-xl text-[11px] text-amber-900 flex items-start gap-2">
+                  <FileText size={15} className="shrink-0 mt-0.5 text-amber-700" />
+                  <span>
+                    Your GSTIN will be verified, recorded in the admin order notifications, and automatically embedded in your downloadable tax invoice bill.
+                  </span>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Section 4: Select Payment Method */}
           <div className="bg-white rounded-2xl border border-[#E8E5DE] p-6 space-y-4 shadow-xs">
             <div className="flex items-center justify-between pb-3 border-b border-[#E8E5DE]">
               <h3 className="text-xs font-bold uppercase tracking-wider text-[#78836A]">
-                3. Choose Payment Mode
+                4. Choose Payment Mode
               </h3>
-              <span className="text-[10px] text-[#73756F]">Step 3 of 3</span>
+              <span className="text-[10px] text-[#73756F]">Step 4 of 4</span>
             </div>
 
             <div className="space-y-3">

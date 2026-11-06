@@ -24,7 +24,7 @@ export const createPendingOrder = asyncHandler(async (req, res) => {
     throw new ApiError(401, 'Authentication required: You must be logged in to place an order.');
   }
 
-  const { items, customerDetails, shippingAddress, paymentMethod = 'razorpay' } = req.body;
+  const { items, customerDetails, shippingAddress, paymentMethod = 'razorpay', gstDetails } = req.body;
   const idempotencyKey = req.get('Idempotency-Key')?.trim();
   if (idempotencyKey && idempotencyKey.length > 120) throw new ApiError(400, 'Invalid checkout request key');
   if (idempotencyKey) {
@@ -81,6 +81,18 @@ export const createPendingOrder = asyncHandler(async (req, res) => {
     state: serviceCheck.state,
     postalCode: serviceCheck.postalCode,
     country: shippingAddress.country?.trim() || 'India',
+  };
+
+  const resolvedGstDetails = (gstDetails && gstDetails.gstin && gstDetails.gstin.trim()) ? {
+    hasGst: true,
+    gstin: gstDetails.gstin.trim().toUpperCase(),
+    businessName: gstDetails.businessName?.trim() || resolvedCustomerDetails.name,
+    businessAddress: gstDetails.businessAddress?.trim() || '',
+  } : {
+    hasGst: false,
+    gstin: '',
+    businessName: '',
+    businessAddress: '',
   };
 
   // Strictly revalidate every item, price, stock, and fetch category hierarchy from MongoDB
@@ -177,6 +189,7 @@ export const createPendingOrder = asyncHandler(async (req, res) => {
       customer: req.user._id,
       customerDetails: resolvedCustomerDetails,
       shippingAddress: resolvedShippingAddress,
+      gstDetails: resolvedGstDetails,
       items: validatedItems,
       pricing: orderPricing,
       paymentStatus: 'pending',
@@ -242,6 +255,7 @@ export const createPendingOrder = asyncHandler(async (req, res) => {
     customer: req.user._id,
     customerDetails: resolvedCustomerDetails,
     shippingAddress: resolvedShippingAddress,
+    gstDetails: resolvedGstDetails,
     items: validatedItems,
     pricing: orderPricing,
     paymentStatus: 'pending',
