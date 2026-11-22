@@ -104,7 +104,7 @@ export const DesignedForComfort: React.FC = () => {
                 <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
               </Link>
               <a
-                href="https://wa.me/919768001999?text=Hi%20ErgoCraft,%20I%20would%20like%20guidance%20on%20choosing%20the%20best%20ergonomic%20chair"
+                href="https://wa.me/919769674412?text=Hi%20ErgoCraft,%20I%20would%20like%20guidance%20on%20choosing%20the%20best%20ergonomic%20chair"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="px-5 py-3.5 rounded-xl border border-white/20 hover:border-white text-xs font-semibold uppercase tracking-wider text-white transition flex items-center gap-2"

@@ -65,7 +65,7 @@ export const CorporateSolutions: React.FC = () => {
                 </button>
 
                 <a
-                  href="tel:+919768001999"
+                  href="tel:+919769674412"
                   className="w-full sm:w-auto px-5 py-3 sm:px-6 sm:py-3.5 rounded-xl bg-white border border-[#E8E5DE] text-[#242620] text-xs sm:text-sm font-semibold tracking-wider uppercase hover:border-[#78836A] hover:text-[#78836A] transition shadow-2xs flex items-center justify-center gap-2 cursor-pointer text-center"
                 >
                   <Phone size={14} className="text-[#78836A] shrink-0" />

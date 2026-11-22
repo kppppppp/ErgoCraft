@@ -139,7 +139,7 @@ export const GoogleReviewsSection: React.FC = () => {
               <ExternalLink size={14} />
             </a>
             <a
-              href="https://wa.me/919768001999?text=Hi%20ErgoCraft,%20I%20would%20like%20to%20visit%20your%20Bhiwandi%20factory%20experience%20centre"
+              href="https://wa.me/919769674412?text=Hi%20ErgoCraft,%20I%20would%20like%20to%20visit%20your%20Bhiwandi%20factory%20experience%20centre"
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center justify-center gap-2 px-4 sm:px-5 py-2.5 rounded-xl bg-[#25D366] hover:bg-[#1EBE5D] text-white text-xs sm:text-sm font-semibold shadow-sm hover:shadow-md transition-all text-center"

@@ -64,7 +64,7 @@ const jsonLd = {
   '@type': 'LocalBusiness',
   name: 'Ergocraft Seating Pvt. Ltd.',
   image: 'https://ergocraft.in/images/logo.png',
-  telephone: '+919768001999',
+  telephone: '+919769674412',
   email: 'sales@ergocraft.in',
   url: 'https://ergocraft.in',
   address: {

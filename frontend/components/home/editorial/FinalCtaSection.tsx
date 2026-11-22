@@ -39,7 +39,7 @@ export const FinalCtaSection: React.FC = () => {
           </Link>
 
           <a
-            href="https://wa.me/919768001999?text=Hi%20ErgoCraft,%20I%20would%20like%20to%20request%20the%20complete%202026%20catalogue"
+            href="https://wa.me/919769674412?text=Hi%20ErgoCraft,%20I%20would%20like%20to%20request%20the%20complete%202026%20catalogue"
             target="_blank"
             rel="noopener noreferrer"
             className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 sm:px-7 py-3.5 sm:py-4 rounded-xl bg-white/10 hover:bg-white/15 text-white text-xs sm:text-sm font-medium tracking-wide border border-white/15 transition text-center"

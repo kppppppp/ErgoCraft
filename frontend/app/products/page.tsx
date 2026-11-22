@@ -496,7 +496,7 @@ function CatalogContent() {
               <span>Direct Bhiwandi Hub Dispatch</span>
             </div>
             <a
-              href="https://wa.me/919768001999?text=Hi%20ErgoCraft,%20I%20am%20looking%20for%20seating%20recommendations"
+              href="https://wa.me/919769674412?text=Hi%20ErgoCraft,%20I%20am%20looking%20for%20seating%20recommendations"
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-2 text-white hover:text-emerald-300 font-semibold transition"

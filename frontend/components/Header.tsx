@@ -342,7 +342,7 @@ export const Header: React.FC = () => {
             </Link>
             <span className="text-white/25">|</span>
             <a
-              href="tel:+919768001999"
+              href="tel:+919769674412"
               className="hover:text-[#C5A880] transition-colors flex items-center gap-1"
             >
               <PhoneCall size={11} className="text-[#C5A880] shrink-0" />

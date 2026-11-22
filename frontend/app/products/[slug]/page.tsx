@@ -151,7 +151,7 @@ function ProductDetailContent() {
 
   const hasDiscount = product.discountPercentage > 0 && product.mrp > product.sellingPrice;
 
-  const whatsappOrderUrl = `https://wa.me/919768001999?text=${encodeURIComponent(
+  const whatsappOrderUrl = `https://wa.me/919769674412?text=${encodeURIComponent(
     `Hi ErgoCraft Seating, I would like to order / inquire about "${product.name}" (SKU: ${product.sku}, Price: ₹${product.sellingPrice.toLocaleString('en-IN')}). Please provide delivery and custom finish options.`
   )}`;
 
@@ -588,7 +588,7 @@ function ProductDetailContent() {
               <div>
                 <strong className="text-[#13231D] block">Direct Consultation:</strong>
                 <a
-                  href="https://wa.me/919768001999"
+                  href="https://wa.me/919769674412"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-emerald-700 hover:text-emerald-800 font-semibold inline-flex items-center gap-1 mt-1"

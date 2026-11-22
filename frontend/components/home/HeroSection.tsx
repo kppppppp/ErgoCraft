@@ -507,7 +507,7 @@ export const HeroSection: React.FC = () => {
       >
         {/* Card 1: Buy On Phone */}
         <a
-          href="https://wa.me/919768001999?text=Hi%20ErgoCraft,%20I%20would%20like%20to%20order%20furniture%20on%20phone"
+          href="https://wa.me/919769674412?text=Hi%20ErgoCraft,%20I%20would%20like%20to%20order%20furniture%20on%20phone"
           target="_blank"
           rel="noopener noreferrer"
           className="group flex flex-col items-center justify-center bg-white/95 hover:bg-white text-center py-1.5 px-1 xs:py-2 xs:px-2 sm:py-3 sm:px-3 w-[46px] xs:w-[58px] sm:w-[78px] rounded-l-xl sm:rounded-l-2xl shadow-xl hover:shadow-2xl border-l border-y border-black/10 hover:border-black/20 hover:-translate-x-1 transition-all duration-200 cursor-pointer backdrop-blur-sm"
@@ -526,7 +526,7 @@ export const HeroSection: React.FC = () => {
 
         {/* Card 2: Need Help? */}
         <a
-          href="https://wa.me/919768001999?text=Hi%20ErgoCraft,%20I%20need%20help%20choosing%20the%20right%20seating"
+          href="https://wa.me/919769674412?text=Hi%20ErgoCraft,%20I%20need%20help%20choosing%20the%20right%20seating"
           target="_blank"
           rel="noopener noreferrer"
           className="group flex flex-col items-center justify-center bg-white/95 hover:bg-white text-center py-1.5 px-1 xs:py-2 xs:px-2 sm:py-3 sm:px-3 w-[46px] xs:w-[58px] sm:w-[78px] rounded-l-xl sm:rounded-l-2xl shadow-xl hover:shadow-2xl border-l border-y border-black/10 hover:border-black/20 hover:-translate-x-1 transition-all duration-200 cursor-pointer backdrop-blur-sm"
