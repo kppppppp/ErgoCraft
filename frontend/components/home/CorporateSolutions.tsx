@@ -98,7 +98,7 @@ export const CorporateSolutions: React.FC = () => {
               <div className="p-4 rounded-xl bg-white border border-[#E8E5DE] flex items-center justify-between text-xs">
                 <div className="flex items-center gap-2 text-[#73756F]">
                   <Mail size={15} className="text-[#78836A]" />
-                  <span>corporate@ergocraft.in</span>
+                  <span>sales@ergocraft.in</span>
                 </div>
                 <span className="font-semibold text-[#13231D]">Avg. Response: 4 hrs</span>
               </div>
