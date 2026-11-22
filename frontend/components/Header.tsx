@@ -313,7 +313,7 @@ export const Header: React.FC = () => {
           <div className="flex flex-wrap items-center justify-center md:justify-start gap-2.5 sm:gap-6 text-[#F7F5F0]/85">
             <span className="flex items-center gap-1.5 font-medium">
               <ShieldCheck size={12} className="text-[#C5A880] shrink-0" />
-              <span>Direct Bhiwandi Factory • 10-Yr Warranty</span>
+              <span>Direct Bhiwandi Factory • 1-yr Warranty</span>
             </span>
             <span className="hidden sm:inline text-white/25">&bull;</span>
             <span className="hidden xs:flex items-center gap-1.5">

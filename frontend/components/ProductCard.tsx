@@ -169,7 +169,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
             <span className="text-gray-300">•</span>
             <span className="inline-flex items-center gap-1 font-medium shrink-0">
               <ShieldCheck size={11} className="text-[#78836A] shrink-0" />
-              <span>10-Yr</span>
+              <span>1-yr</span>
             </span>
           </div>
         </div>
