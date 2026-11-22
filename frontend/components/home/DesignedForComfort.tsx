@@ -27,7 +27,7 @@ const ERGONOMIC_FEATURES = [
     icon: ShieldCheck,
     title: 'High-Resilience 55 kg/m³ Molded Cushioning',
     description:
-      'Contoured cold-cured foam distributes weight evenly across pressure points. Backed by our 10-year factory structural guarantee.',
+      'Contoured cold-cured foam distributes weight evenly across pressure points. Backed by our 1-year factory structural guarantee.',
   },
 ];
 
@@ -73,7 +73,7 @@ export const DesignedForComfort: React.FC = () => {
                 <span className="italic font-serif text-[#D5DFC7] font-light">of effortless posture.</span>
               </h2>
               <p className="text-sm text-white/70 mt-3 max-w-xl leading-relaxed font-light">
-                Every ErgoCraft chair is engineered from the ground up to minimize spinal compression and encourage active circulation. Direct from our Bhiwandi factory with 10-year assurance.
+                Every ErgoCraft chair is engineered from the ground up to minimize spinal compression and encourage active circulation. Direct from our Bhiwandi factory with 1-year assurance.
               </p>
             </div>
 

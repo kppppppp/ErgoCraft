@@ -775,7 +775,7 @@ function AccountContent() {
             <div className="space-y-3 text-[#73756F]">
               <div className="flex items-start gap-2.5">
                 <ShieldCheck size={16} className="text-[#78836A] shrink-0 mt-0.5" />
-                <span>3-Year Comprehensive Manufacturer Warranty on mechanisms and hydraulic gas lifts.</span>
+                <span>1-year Comprehensive Manufacturer Warranty on mechanisms and hydraulic gas lifts.</span>
               </div>
               <div className="flex items-start gap-2.5">
                 <Truck size={16} className="text-[#78836A] shrink-0 mt-0.5" />

@@ -296,7 +296,7 @@ export default function CheckoutPage() {
           Customer Sign-In Required
         </h2>
         <p className="text-xs text-[#73756F] leading-relaxed">
-          To maintain luxury manufacturing records, 3-year warranty bindings, and tax invoices, ErgoCraft requires customer authentication before placing an order.
+          To maintain luxury manufacturing records, 1-year warranty bindings, and tax invoices, ErgoCraft requires customer authentication before placing an order.
         </p>
         <div className="pt-2">
           <Link
@@ -1165,7 +1165,7 @@ export default function CheckoutPage() {
                   <span>100% Encrypted Payment via Razorpay Test Gateway</span>
                 </p>
               )}
-              <p>Pan-India Free Doorstep Delivery &bull; 3-Year Comprehensive Warranty</p>
+              <p>Pan-India Free Doorstep Delivery &bull; 1-year Comprehensive Warranty</p>
             </div>
           </div>
         </div>

@@ -82,8 +82,8 @@ export const Footer: React.FC = () => {
               </div>
               <div className="flex items-center gap-2.5">
                 <Mail size={15} className="text-[#C5A880] shrink-0" />
-                <a href="mailto:support@ergocraft.in" className="hover:text-white transition">
-                  support@ergocraft.in
+                <a href="mailto:sales@ergocraft.in" className="hover:text-white transition">
+                  sales@ergocraft.in
                 </a>
               </div>
               <div className="flex items-center gap-2.5">
@@ -161,7 +161,7 @@ export const Footer: React.FC = () => {
                 </a>
               </li>
               <li>
-                <a href="mailto:support@ergocraft.in" className="hover:text-white transition">
+                <a href="mailto:sales@ergocraft.in" className="hover:text-white transition">
                   Warranty Claim
                 </a>
               </li>
@@ -172,7 +172,7 @@ export const Footer: React.FC = () => {
           <div className="space-y-3">
             <h4 className="text-xs font-bold uppercase tracking-widest text-[#78836A]">Customer Support</h4>
             <p className="text-xs text-white/65 leading-relaxed">Questions about a product, payment, or existing order?</p>
-            <a href="mailto:support@ergocraft.in" className="inline-flex text-sm font-medium text-white hover:text-[#C6CFB9]">support@ergocraft.in</a>
+            <a href="mailto:sales@ergocraft.in" className="inline-flex text-sm font-medium text-white hover:text-[#C6CFB9]">sales@ergocraft.in</a>
           </div>
         </div>
       </div>

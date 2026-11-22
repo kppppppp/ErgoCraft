@@ -152,7 +152,7 @@ class EmailService {
 
   async sendPasswordResetConfirmationEmail(email) {
     const subject = 'Your Ergocraft Password Has Been Reset';
-    const textContent = `Your Ergocraft password was successfully changed. If you did not perform this change, please contact support@ergocraft.in immediately.`;
+    const textContent = `Your Ergocraft password was successfully changed. If you did not perform this change, please contact sales@ergocraft.in immediately.`;
     const htmlContent = `
       <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; color: #171717; background-color: #FAF8F5;">
         <div style="text-align: center; margin-bottom: 24px;">

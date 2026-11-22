@@ -252,7 +252,7 @@ export const ShopByCategory: React.FC = () => {
               </div>
             </div>
 
-            {/* 4. 3-Year Warranty */}
+            {/* 4. 1-year Warranty */}
             <div className="flex items-center gap-2.5 sm:gap-3.5 group bg-white/60 sm:bg-transparent p-2.5 sm:p-0 rounded-xl sm:rounded-none border border-[#E7E2D6] sm:border-0">
               <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-xl bg-white border border-[#DDD9CE] flex items-center justify-center shrink-0 shadow-xs group-hover:border-[#78836A] transition-colors">
                 <svg
@@ -270,7 +270,7 @@ export const ShopByCategory: React.FC = () => {
               </div>
               <div className="min-w-0">
                 <p className="text-[11px] sm:text-[13px] font-bold uppercase tracking-wider text-[#1F241F] truncate">
-                  3-YEAR WARRANTY
+                  1-year WARRANTY
                 </p>
                 <p className="text-[10px] sm:text-xs text-[#71736D] leading-tight font-medium truncate">
                   BIFMA Structural Grade

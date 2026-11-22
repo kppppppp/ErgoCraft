@@ -15,7 +15,7 @@ const QUESTIONS = [
       'Standard orders are packaged in transit-safe crating and dispatched within 24-48 business hours directly from our Bhiwandi hub. Deliveries to Mumbai, Pune, Bengaluru, Delhi NCR, Hyderabad, and major metros typically arrive within 3 to 7 business days with free doorstep delivery.',
   },
   {
-    question: 'What does the 10-Year Factory Warranty cover?',
+    question: 'What does the 1-year Factory Warranty cover?',
     answer:
       'Our comprehensive manufacturer warranty covers chair structural frames, heavy-duty synchronized tilt mechanisms, and certified Class-4 hydraulic gas lifts. In the rare event of a defect, our factory dispatches replacement parts with guided support.',
   },
@@ -59,10 +59,10 @@ export function FaqSection() {
               <MessageCircle size={15} /> <span>WhatsApp: +91 97680 01999</span>
             </a>
             <a
-              href="mailto:support@ergocraft.in"
+              href="mailto:sales@ergocraft.in"
               className="inline-flex items-center justify-center gap-2 text-xs font-semibold px-4 py-2.5 rounded-xl border border-[#DFE1D8] text-[#59644E] hover:text-[#252A23] hover:border-[#78836A] transition bg-white text-center"
             >
-              <Mail size={15} /> <span>support@ergocraft.in</span>
+              <Mail size={15} /> <span>sales@ergocraft.in</span>
             </a>
           </div>
         </div>

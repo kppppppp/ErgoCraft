@@ -6,7 +6,7 @@ import { ShieldCheck, Truck, LockKeyhole, MessageCircle } from 'lucide-react';
 const PILLARS = [
   {
     icon: ShieldCheck,
-    title: '10-Year Factory Warranty',
+    title: '1-year Factory Warranty',
     description: 'Comprehensive manufacturer guarantee on frames, tilt mechanisms, and Class-4 gas-lifts.',
   },
   {

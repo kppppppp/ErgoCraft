@@ -461,7 +461,7 @@ function ProductDetailContent() {
             <div className="p-3 bg-white rounded-xl border border-[#E8E5DE]">
               <ShieldCheck size={17} className="mx-auto text-[#78836A] mb-1" />
               <span className="font-semibold block text-[#13231D]">Factory Warranty</span>
-              <span className="text-[10px] text-[#242620]">10-Year Coverage</span>
+              <span className="text-[10px] text-[#242620]">1-year Coverage</span>
             </div>
             <div className="p-3 bg-white rounded-xl border border-[#E8E5DE]">
               <CheckCircle2 size={17} className="mx-auto text-[#78836A] mb-1" />
@@ -579,7 +579,7 @@ function ProductDetailContent() {
             <div className="text-xs space-y-3 text-[#73756F]">
               <div className="pb-2.5 border-b border-[#E8E5DE]">
                 <strong className="text-[#13231D] block">Warranty Guarantee:</strong>
-                <span>{product.warranty || '10-Year comprehensive structural & mechanism warranty. Direct factory parts replacement.'}</span>
+                <span>{product.warranty || '1-year comprehensive structural & mechanism warranty. Direct factory parts replacement.'}</span>
               </div>
               <div className="pb-2.5 border-b border-[#E8E5DE]">
                 <strong className="text-[#13231D] block">Shipping & Assembly:</strong>

@@ -265,7 +265,7 @@ export function generateInvoiceHtml(order: InvoiceOrderData): string {
     <div style="border-top: 1px solid #E5E7EB; padding-top: 16px; font-size: 11px; color: #6B7280; display: flex; justify-content: space-between; align-items: flex-end;">
       <div>
         <div style="font-weight: 600; color: #374151; margin-bottom: 2px;">Terms & Conditions:</div>
-        <div>1. Goods once sold are covered under ErgoCraft 10-Year Structural Warranty.</div>
+        <div>1. Goods once sold are covered under ErgoCraft 1-year Structural Warranty.</div>
         <div>2. All disputes subject to Thane / Mumbai jurisdiction.</div>
         <div style="margin-top: 4px; font-style: italic;">This is a computer-generated tax invoice. No signature is required.</div>
       </div>

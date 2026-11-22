@@ -48,7 +48,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'ErgoCraft Seating Pvt. Ltd. | Factory Direct Seating Solutions',
     description:
-      'Premium ergonomic seating and luxury sofas delivered across India. Direct factory pricing with 10-year warranty.',
+      'Premium ergonomic seating and luxury sofas delivered across India. Direct factory pricing with 1-year warranty.',
   },
   robots: {
     index: true,
@@ -65,7 +65,7 @@ const jsonLd = {
   name: 'Ergocraft Seating Pvt. Ltd.',
   image: 'https://ergocraft.in/images/logo.png',
   telephone: '+919768001999',
-  email: 'support@ergocraft.in',
+  email: 'sales@ergocraft.in',
   url: 'https://ergocraft.in',
   address: {
     '@type': 'PostalAddress',

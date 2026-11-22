@@ -489,7 +489,7 @@ function CatalogContent() {
             </div>
             <div className="flex items-center gap-2">
               <ShieldCheck size={14} className="text-[#A3B396] shrink-0" />
-              <span>10-Year Factory Warranty</span>
+              <span>1-year Factory Warranty</span>
             </div>
             <div className="flex items-center gap-2">
               <CheckCircle2 size={14} className="text-[#A3B396] shrink-0" />
