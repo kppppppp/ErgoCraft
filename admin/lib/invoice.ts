@@ -141,7 +141,7 @@ export function generateInvoiceHtml(order: InvoiceOrderData): string {
         <p style="margin: 8px 0 0; font-size: 11px; color: #4B5563; line-height: 1.4;">
           Direct Bhiwandi Central Facility, Thane, Maharashtra - 421302<br />
           <strong>GSTIN:</strong> 27AABCE9876K1Z2 | <strong>State:</strong> Maharashtra (Code: 27)<br />
-          Email: contact@ergocraft.in | Phone: +91 97680 01999
+          Email: contact@ergocraft.in | Phone: +91 97696 74412
         </p>
       </div>
       <div style="text-align: right;">

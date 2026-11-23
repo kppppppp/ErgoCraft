@@ -437,7 +437,7 @@ function ProductDetailContent() {
               className="w-full py-3 px-5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold tracking-wider uppercase transition flex items-center justify-center gap-2.5 shadow-xs"
             >
               <MessageCircle size={17} className="text-white fill-white/20" />
-              <span>Order / Inquire on WhatsApp (+91 97680 01999)</span>
+              <span>Order / Inquire on WhatsApp (+91 97696 74412)</span>
             </a>
 
             {/* Corporate Quote Link */}
@@ -594,7 +594,7 @@ function ProductDetailContent() {
                   className="text-emerald-700 hover:text-emerald-800 font-semibold inline-flex items-center gap-1 mt-1"
                 >
                   <MessageCircle size={13} />
-                  <span>Chat with Factory Lead: +91 97680 01999</span>
+                  <span>Chat with Factory Lead: +91 97696 74412</span>
                 </a>
               </div>
             </div>

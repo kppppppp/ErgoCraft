@@ -511,7 +511,7 @@ export const HeroSection: React.FC = () => {
           target="_blank"
           rel="noopener noreferrer"
           className="group flex flex-col items-center justify-center bg-white/95 hover:bg-white text-center py-1.5 px-1 xs:py-2 xs:px-2 sm:py-3 sm:px-3 w-[46px] xs:w-[58px] sm:w-[78px] rounded-l-xl sm:rounded-l-2xl shadow-xl hover:shadow-2xl border-l border-y border-black/10 hover:border-black/20 hover:-translate-x-1 transition-all duration-200 cursor-pointer backdrop-blur-sm"
-          aria-label="Buy On Phone via WhatsApp at +91 97680 01999"
+          aria-label="Buy On Phone via WhatsApp at +91 97696 74412"
         >
           <div className="w-5 h-5 xs:w-7 xs:h-7 sm:w-8 sm:h-8 rounded-full bg-teal-50 flex items-center justify-center text-[#0D766E] group-hover:scale-110 transition-transform">
             <Smartphone size={13} strokeWidth={2.2} className="xs:w-[16px] xs:h-[16px] sm:w-[18px] sm:h-[18px]" />
@@ -530,7 +530,7 @@ export const HeroSection: React.FC = () => {
           target="_blank"
           rel="noopener noreferrer"
           className="group flex flex-col items-center justify-center bg-white/95 hover:bg-white text-center py-1.5 px-1 xs:py-2 xs:px-2 sm:py-3 sm:px-3 w-[46px] xs:w-[58px] sm:w-[78px] rounded-l-xl sm:rounded-l-2xl shadow-xl hover:shadow-2xl border-l border-y border-black/10 hover:border-black/20 hover:-translate-x-1 transition-all duration-200 cursor-pointer backdrop-blur-sm"
-          aria-label="Need Help? Contact WhatsApp Support at +91 97680 01999"
+          aria-label="Need Help? Contact WhatsApp Support at +91 97696 74412"
         >
           <div className="w-5 h-5 xs:w-7 xs:h-7 sm:w-8 sm:h-8 rounded-full bg-teal-50 flex items-center justify-center text-[#0D766E] group-hover:scale-110 transition-transform">
             <Headset size={13} strokeWidth={2.2} className="xs:w-[16px] xs:h-[16px] sm:w-[18px] sm:h-[18px]" />

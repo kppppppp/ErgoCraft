@@ -200,7 +200,7 @@ test('Comprehensive E-Commerce Audit & E2E Verification Suite (Scenarios A throu
         email: 'admin@ergocraft.in',
         password: 'Admin@Ergocraft2026!',
         role: 'admin',
-        phone: '+919326990672',
+        phone: '+919769674412',
       });
     }
 

@@ -23,7 +23,7 @@ export const FactoryBrandTrustSection: React.FC = () => {
     {
       icon: Headphones,
       title: 'Direct WhatsApp Concierge',
-      description: 'Speak directly with our factory specialists at +91 97680 01999 for customized fabrics, dimensions, and quotes.',
+      description: 'Speak directly with our factory specialists at +91 97696 74412 for customized fabrics, dimensions, and quotes.',
     },
   ];
 

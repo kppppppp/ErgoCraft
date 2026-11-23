@@ -502,7 +502,7 @@ function CatalogContent() {
               className="flex items-center gap-2 text-white hover:text-emerald-300 font-semibold transition"
             >
               <MessageCircle size={14} className="text-emerald-400 shrink-0" />
-              <span>WhatsApp: +91 97680 01999</span>
+              <span>WhatsApp: +91 97696 74412</span>
             </a>
           </div>
         </div>

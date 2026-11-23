@@ -22,7 +22,7 @@ const QUESTIONS = [
   {
     question: 'Can I order directly on WhatsApp or request custom upholstery?',
     answer:
-      'Yes! You can connect with our factory sales lead directly on WhatsApp at +91 97680 01999. We provide bespoke fabric choices, corporate brand colors, high-density foam options, and tailored batch delivery.',
+      'Yes! You can connect with our factory sales lead directly on WhatsApp at +91 97696 74412. We provide bespoke fabric choices, corporate brand colors, high-density foam options, and tailored batch delivery.',
   },
   {
     question: 'Which payment methods are accepted?',
@@ -56,7 +56,7 @@ export function FaqSection() {
               rel="noopener noreferrer"
               className="inline-flex items-center justify-center gap-2 text-xs font-semibold px-4 py-2.5 rounded-xl bg-emerald-700 text-white hover:bg-emerald-800 transition text-center"
             >
-              <MessageCircle size={15} /> <span>WhatsApp: +91 97680 01999</span>
+              <MessageCircle size={15} /> <span>WhatsApp: +91 97696 74412</span>
             </a>
             <a
               href="mailto:sales@ergocraft.in"

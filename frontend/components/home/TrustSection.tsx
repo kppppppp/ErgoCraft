@@ -22,7 +22,7 @@ const PILLARS = [
   {
     icon: MessageCircle,
     title: 'Factory Direct Consultation',
-    description: 'Connect directly with our seating specialists via WhatsApp (+91 97680 01999) for custom orders.',
+    description: 'Connect directly with our seating specialists via WhatsApp (+91 97696 74412) for custom orders.',
   },
 ];
 

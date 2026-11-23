@@ -346,7 +346,7 @@ export const Header: React.FC = () => {
               className="hover:text-[#C5A880] transition-colors flex items-center gap-1"
             >
               <PhoneCall size={11} className="text-[#C5A880] shrink-0" />
-              <span>+91 97680 01999</span>
+              <span>+91 97696 74412</span>
             </a>
           </div>
         </div>

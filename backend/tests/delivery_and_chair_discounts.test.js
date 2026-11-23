@@ -363,7 +363,7 @@ test('FEATURE 1 & FEATURE 2: Delivery Restrictions & Automatic Chair Discount Su
         email: 'admin@ergocraft.in',
         password: 'Admin@Ergocraft2026!',
         role: 'admin',
-        phone: '+919326990672',
+        phone: '+919769674412',
       });
     }
 

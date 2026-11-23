@@ -22,7 +22,7 @@ const seedData = async () => {
       email: 'admin@ergocraft.in',
       password: 'Admin@Ergocraft2026!',
       role: 'admin',
-      phone: '+919326990672',
+      phone: '+919769674412',
     });
 
     await User.create({

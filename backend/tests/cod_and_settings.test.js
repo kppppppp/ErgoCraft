@@ -31,7 +31,7 @@ test('Cash on Delivery (COD) & Admin Settings Suite', async (t) => {
         email: 'admin@ergocraft.in',
         password: 'Admin@Ergocraft2026!',
         role: 'admin',
-        phone: '+919326990672',
+        phone: '+919769674412',
       });
     }
 
